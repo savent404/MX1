@@ -64,6 +64,13 @@ struct _AF_PCM {
     int16_t BitsPerSample;
 };
 
+struct _AF_DATA {
+    /* suoport to be 'data' */
+    char ChunkID[4];
+
+    uint32_t size;
+}
+
 #ifdef __cplusplus
 }
 #endif
