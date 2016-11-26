@@ -41,27 +41,27 @@ struct _AF_PCM {
 
     /* Chunk Size
        Size without ChunkID and ChunkSize */
-    int32_t ChunkSize;
+    uint32_t ChunkSize;
 
     char    Format[4];
 
     char    Subchunk1ID[4];
 
-    int32_t Subchunk1Size;
+    uint32_t Subchunk1Size;
 
     /* Format, if it's PCM Format,
        should be 0x0001 */
-    int16_t AudioFormat;
+    uint16_t AudioFormat;
 
-    int16_t NumChannels;
+    uint16_t NumChannels;
 
-    int32_t SampleRate;
+    uint32_t SampleRate;
 
-    int32_t ByteRate;
+    uint32_t ByteRate;
 
-    int16_t BlockAlign;
+    uint16_t BlockAlign;
 
-    int16_t BitsPerSample;
+    uint16_t BitsPerSample;
 };
 
 struct _AF_DATA {
