@@ -3,7 +3,7 @@
 /* This is Audio Player Header file
  */
 #include "AF.h"
-
+#include "stdint.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -12,28 +12,35 @@ extern "C" {
 #define FIFO_NUM 3
 #define FIFO_SIZ 1024
 
+enum {running, empty} Player_status = empty;
+
 /* Audio FIFO structure
  */
-typedef struct {
+struct {
+    uint16_t*
+    src[FIFO_NUM];
     /* FIFO status */
     uint8_t FIFO_S;
     uint8_t FIFO_cnt;
-    uint16_t*
-    src[FIFO_NUM];
-}Audio_FIFO;
+}Audio_FIFO = {
+    .FIFO_S = 0,
+    .FIFO_cnt = 0,
+};
 
 /* Aduio FIFO operation
  */
-
-// Init FIFO status
-void      AF_INIT(Audio_FIFO *pt);
-
 // Add a node in FIFO
-int8_t    AF_IN(Audio_FIFO *pt, uint16_t *src);
+int8_t    AF_IN(uint16_t *src);
 
 // Return a node in FIFO
-uint16_t* AF_OUT(Audio_FIFO *pt);
+uint16_t* AF_OUT(void);
 
+// Play
+int8_t    AF_Play(void);
+
+/* Usr add in proj
+ */
+void Player_Triger(void);
 
 #ifdef _cplusplus
 }
