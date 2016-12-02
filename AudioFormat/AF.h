@@ -28,7 +28,7 @@ SOFTWARE.
 /* This port will deal with ".wav" format */
 
 #include <stdint.h>
-
+#include <stdio.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
