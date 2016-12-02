@@ -11,7 +11,7 @@ void AF_INIT(Audio_FIFO *pt) {
 // Add a node in FIFO
 int8_t AF_IN(Audio_FIFO *pt, uint16_t *src) {
     if (pt->FIFO_cnt < FIFO_NUM) {
-        pt->src[(pt->FIFO_S + FIFO_cnt - 1)%FIFO_NUM] = src;
+        pt->src[(pt->FIFO_S + pt->FIFO_cnt - 1)%FIFO_NUM] = src;
         return 0;
     }
     return -1;
