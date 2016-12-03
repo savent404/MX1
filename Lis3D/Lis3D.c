@@ -129,14 +129,12 @@ char Lis3dCouter(Lis3dData *data)
   data->Dx = data->Dx >> 4;
   data->Dy = data->Dy >> 4;
   data->Dz = data->Dz >> 4;
-  if (data->Dx < 0)
-    data->Dx = -data->Dx; //速度取正
-  if (data->Dy < 0)
-    data->Dy = -data->Dy;
-  if (data->Dz < 0)
-    data->Dz = -data->Dz;
+  data->Dx *= data->Dx;
+  data->Dy *= data->Dy;
+  data->Dz *= data->Dz;
 
   avarage[2] = data->Dx + data->Dy + data->Dz;             //加速度3轴求和
+  avarage[2] = (short)sqrt(avarage[2]);
   caonima[4] = (avarage[0] + avarage[1] + avarage[2]) / 3; //滑动窗口取3次平均赋值
 
   avarage[0] = avarage[1];
