@@ -122,66 +122,59 @@ Lis3dData Lis3dGetData(void)
 
 char Lis3dCouter(Lis3dData *data)
 {
-  static short caonima[5] = {0};
-  static short avarage[3] = {0};
+  static uint16_t caonima[5] = {0};
+  static uint16_t avarage[3] = {0};
   static unsigned char i = 0, j = 0;
+  uint32_t buf = 0;
 
   data->Dx = data->Dx >> 4;
   data->Dy = data->Dy >> 4;
   data->Dz = data->Dz >> 4;
-  data->Dx *= data->Dx;
-  data->Dy *= data->Dy;
-  data->Dz *= data->Dz;
-
-  avarage[2] = data->Dx + data->Dy + data->Dz;             //加速度3轴求和
-  avarage[2] = (short)sqrt(avarage[2]);
+  buf += (data->Dx)*(data->Dx);
+  buf += (data->Dy)*(data->Dy);
+  buf += (data->Dz)*(data->Dz);
+  avarage[2] = (uint16_t)sqrt(buf);             //加速度3轴求和
   caonima[4] = (avarage[0] + avarage[1] + avarage[2]) / 3; //滑动窗口取3次平均赋值
-
-  avarage[0] = avarage[1];
-  avarage[1] = avarage[2];
 
   // 取波峰逻辑判定
   if (
-    ((caonima[2] - caonima[0] >= 45) || (caonima[2] - caonima[4] >= 45))
+    //加入波形检测
+    (caonima[0] <= caonima[1] && caonima[1] <= caonima[2])
     &&
-    ((caonima[1] > caonima[0]) || (caonima[3] > caonima[4]))
+    (caonima[2] >= caonima[3] && caonima[3] >= caonima[4])
+
+    //加入幅度检测
     &&
-    (caonima[2] > caonima[3]) && (caonima[2] > caonima[1])
+    (caonima[2] - caonima[0] >= 45 || caonima[2] - caonima[4] >= 45)
     )
   {
     i++;
-    caonima[0] = caonima[1];
-    caonima[1] = caonima[2];
-    caonima[2] = caonima[3];
-    caonima[3] = caonima[4];
   }
-  if (i)
-  {
-    j++;
-    if ((i > 2) && (j < 5))
-    {
-      i = 0;
-      j = 0;
-      caonima[0] = caonima[1];
-      caonima[1] = caonima[2];
-      caonima[2] = caonima[3];
-      caonima[3] = caonima[4];
-      return 0;
-    }
-    if ((j == 5) && (i <= 2))
-    {
-      i = 0;
-      j = 0;
-      caonima[0] = caonima[1];
-      caonima[1] = caonima[2];
-      caonima[2] = caonima[3];
-      caonima[3] = caonima[4];
-      return 1;
-    }
-  }
+
+  // Shift
+  avarage[0] = avarage[1];
+  avarage[1] = avarage[2];
   caonima[0] = caonima[1];
   caonima[1] = caonima[2];
   caonima[2] = caonima[3];
   caonima[3] = caonima[4];
+
+  //Make sure
+  if (i)
+  {
+    j++;
+    if (i > 2)
+    {
+      i = 0;
+      j = 0;
+      return 0;
+    }
+    if (j >= 5) //&& i <= 2
+    {
+      i = 0;
+      j = 0;
+      return 1;
+    }
+  }
   return 0;
 }
