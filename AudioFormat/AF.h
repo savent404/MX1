@@ -69,7 +69,7 @@ struct _AF_DATA {
     char ChunkID[4];
 
     uint32_t size;
-}
+};
 
 #ifdef __cplusplus
 }
