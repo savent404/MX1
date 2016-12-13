@@ -70,9 +70,9 @@ void HAL_MspInit(void)
   /* SysTick_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 
-    /**NOJTAG: JTAG-DP Disabled and SW-DP Enabled 
+    /**NONJTRST: Full SWJ (JTAG-DP + SW-DP) but without NJTRST 
     */
-  __HAL_AFIO_REMAP_SWJ_NOJTAG();
+  __HAL_AFIO_REMAP_SWJ_NONJTRST();
 
   /* USER CODE BEGIN MspInit 1 */
 
@@ -143,9 +143,9 @@ void HAL_DAC_MspInit(DAC_HandleTypeDef* hdac)
     /**DAC GPIO Configuration    
     PA4     ------> DAC_OUT1 
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_4;
+    GPIO_InitStruct.Pin = DAC_OUT_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    HAL_GPIO_Init(DAC_OUT_GPIO_Port, &GPIO_InitStruct);
 
     /* Peripheral DMA init*/
   
@@ -185,7 +185,7 @@ void HAL_DAC_MspDeInit(DAC_HandleTypeDef* hdac)
     /**DAC GPIO Configuration    
     PA4     ------> DAC_OUT1 
     */
-    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_4);
+    HAL_GPIO_DeInit(DAC_OUT_GPIO_Port, DAC_OUT_Pin);
 
     /* Peripheral DMA DeInit*/
     HAL_DMA_DeInit(hdac->DMA_Handle1);

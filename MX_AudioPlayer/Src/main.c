@@ -335,11 +335,11 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOC, LED5_Pin|LED6_Pin|LED7_Pin|LED8_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(Audio_EN_GPIO_Port, Audio_EN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, Audio_EN_Pin|LED1_Pin|LED2_Pin|LED3_Pin 
+                          |LED4_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, Power_EN_Pin|CS_Pin|LED1_Pin|LED2_Pin 
-                          |LED3_Pin|LED4_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, Power_EN_Pin|CS_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : LED5_Pin LED6_Pin LED7_Pin LED8_Pin */
   GPIO_InitStruct.Pin = LED5_Pin|LED6_Pin|LED7_Pin|LED8_Pin;
@@ -347,16 +347,16 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : Audio_EN_Pin */
-  GPIO_InitStruct.Pin = Audio_EN_Pin;
+  /*Configure GPIO pins : Audio_EN_Pin LED1_Pin LED2_Pin LED3_Pin 
+                           LED4_Pin */
+  GPIO_InitStruct.Pin = Audio_EN_Pin|LED1_Pin|LED2_Pin|LED3_Pin 
+                          |LED4_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(Audio_EN_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : Power_EN_Pin CS_Pin LED1_Pin LED2_Pin 
-                           LED3_Pin LED4_Pin */
-  GPIO_InitStruct.Pin = Power_EN_Pin|CS_Pin|LED1_Pin|LED2_Pin 
-                          |LED3_Pin|LED4_Pin;
+  /*Configure GPIO pins : Power_EN_Pin CS_Pin */
+  GPIO_InitStruct.Pin = Power_EN_Pin|CS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
