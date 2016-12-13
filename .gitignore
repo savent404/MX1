@@ -1,6 +1,5 @@
-MX_AudioPlayer/Drivers
-MX_AudioPlayer/Middlewares
-!MX_AudioPlayer/MX_AudioPlayer.uvoptx
-!MX_AudioPlayer/MX_AudioPlayer.uvprojx
-!MX_AudioPlayer/startup_stm32f103xe.s
-MX_AudioPlayer/MDK-ARM/*
+MX_AudioPlayer/Drivers/*
+MX_AudioPlayer/Middlewares/*
+MX_AudioPlayer/MDK-ARM/DebugConfig/*
+MX_AudioPlayer/MDK-ARM/MX_AudioPlayer/*
+MX_AudioPlayer/MDK-ARM/*.lst
