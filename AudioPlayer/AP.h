@@ -3,37 +3,38 @@
 /* This is Audio Player Header file
  */
 #include "AF.h"
-
+#include "stdint.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 // Usr Type Define
 #define FIFO_NUM 3
-#define FIFO_SIZ 1024
+#define FIFO_SIZ 256
 
-/* Audio FIFO structure
- */
-typedef struct {
-    /* FIFO status */
-    uint8_t FIFO_S;
-    uint8_t FIFO_cnt;
-    uint16_t*
-    src[FIFO_NUM];
-}Audio_FIFO;
+
 
 /* Aduio FIFO operation
  */
-
-// Init FIFO status
-void      AF_INIT(Audio_FIFO *pt);
-
 // Add a node in FIFO
-int8_t    AF_IN(Audio_FIFO *pt, uint16_t *src);
+int8_t    AP_IN(uint16_t *src);
+
+int8_t    AP_IN_MIX(uint16_t *src_1, uint16_t *src_2);
 
 // Return a node in FIFO
-uint16_t* AF_OUT(Audio_FIFO *pt);
+uint16_t* AP_OUT(void);
 
+// Play
+int8_t    AP_Play(void);
+
+int8_t    AP_Stop(void);
+
+/* Usr add in proj
+ */
+void AP_Triger(void);
+
+__weak uint16_t  convert_single(uint16_t src);
+__weak uint16_t  convert_double(uint16_t src_1, uint16_t src_2);
 
 #ifdef _cplusplus
 }

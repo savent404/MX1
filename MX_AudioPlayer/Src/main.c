@@ -35,7 +35,9 @@
 #include "fatfs.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "AF.h"
+#include "AP.h"
+#include "string.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -73,6 +75,18 @@ static void MX_TIM2_Init(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
+FATFS fs;
+FRESULT fres;
+
+FIL file_1, file_2;
+UINT file_cnt;
+struct _AF_PCM pcm_1, pcm_2;
+struct _AF_DATA data_1, data_2;
+
+static uint16_t file_buf[FIFO_SIZ];
+static uint16_t extra_buf[FIFO_SIZ];
+
+uint32_t i;
 
 /* USER CODE END 0 */
 
@@ -80,7 +94,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-
+	
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -102,6 +116,27 @@ int main(void)
   MX_FATFS_Init();
 
   /* USER CODE BEGIN 2 */
+  fres = f_mount(&fs, "0", 1);
+  fres = f_open(&file_1, "/1.wav", FA_READ);
+  fres = f_open(&file_2, "/2.wav", FA_READ);
+  fres = f_read(&file_1, &pcm_1, sizeof(pcm_1), &file_cnt);
+  fres = f_read(&file_1, &data_1, sizeof(data_1), &file_cnt);
+	
+	fres = f_read(&file_1, file_buf, 2*FIFO_SIZ, &file_cnt);
+	fres = f_read(&file_2, extra_buf, 2*FIFO_SIZ, &file_cnt);
+	i = AP_IN_MIX(file_buf, extra_buf);
+	fres = f_read(&file_1, file_buf, 2*FIFO_SIZ, &file_cnt);
+	fres = f_read(&file_2, extra_buf, 2*FIFO_SIZ, &file_cnt);
+	i = AP_IN_MIX(file_buf, extra_buf);
+	fres = f_read(&file_1, file_buf, 2*FIFO_SIZ, &file_cnt);
+	fres = f_read(&file_2, extra_buf, 2*FIFO_SIZ, &file_cnt);
+	i = AP_IN_MIX(file_buf, extra_buf);
+	fres = f_read(&file_1, file_buf, 2*FIFO_SIZ, &file_cnt);
+	fres = f_read(&file_2, extra_buf, 2*FIFO_SIZ, &file_cnt);
+	data_1.size -= 2*FIFO_SIZ*4;
+	data_2.size -= 2*FIFO_SIZ*4;
+	AP_Play();
+	
 
   /* USER CODE END 2 */
 
@@ -112,7 +147,29 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
+		if (!AP_IN_MIX(file_buf, extra_buf)) {
+			
+			if (data_1.size >= 2*FIFO_SIZ) {
+				fres = f_read(&file_1, &file_buf, 2*FIFO_SIZ, &file_cnt);
+				data_1.size -= 2*FIFO_SIZ;
 
+        
+			}
+			else {
+				memset(file_buf, 0x00, 2*FIFO_SIZ);
+				//extra test
+				HAL_Delay(200);
+        NVIC_SystemReset();
+			}
+			
+			if (data_2.size >= 2*FIFO_SIZ) {
+				fres = f_read(&file_2, &extra_buf, 2*FIFO_SIZ, &file_cnt);
+				data_2.size -= 2*FIFO_SIZ;
+			}
+			else
+				memset(extra_buf, 0x00, 2*FIFO_SIZ);
+
+		}
   }
   /* USER CODE END 3 */
 
@@ -155,6 +212,8 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+
+  HAL_RCC_MCOConfig(RCC_MCO, RCC_MCO1SOURCE_HSI, RCC_MCODIV_1);
 
   HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
 
@@ -231,7 +290,7 @@ static void MX_SDIO_SD_Init(void)
   hsd.Init.ClockPowerSave = SDIO_CLOCK_POWER_SAVE_DISABLE;
   hsd.Init.BusWide = SDIO_BUS_WIDE_1B;
   hsd.Init.HardwareFlowControl = SDIO_HARDWARE_FLOW_CONTROL_DISABLE;
-  hsd.Init.ClockDiv = 0;
+  hsd.Init.ClockDiv = 5;
 
 }
 
@@ -267,7 +326,7 @@ static void MX_TIM2_Init(void)
   TIM_MasterConfigTypeDef sMasterConfig;
 
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 63;
+  htim2.Init.Prescaler = 23;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim2.Init.Period = 99;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -319,6 +378,7 @@ static void MX_DMA_Init(void)
         * Output
         * EVENT_OUT
         * EXTI
+     PA8   ------> RCC_MCO
 */
 static void MX_GPIO_Init(void)
 {
@@ -372,6 +432,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(LIS3DH_INTI_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PA8 */
+  GPIO_InitStruct.Pin = GPIO_PIN_8;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 }
 
