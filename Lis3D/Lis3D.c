@@ -91,17 +91,18 @@ static void SPI1_CS_High(void)
     HAL_GPIO_WritePin(CS_GPIO_Port, CS_Pin, GPIO_PIN_SET);
 }
 
+__IO HAL_StatusTypeDef res = 0;
 static uint8_t SPI_LIS3DH_SendByte(uint8_t byte)
 {
     extern SPI_HandleTypeDef hspi2;
     uint8_t buf[1];
-    HAL_SPI_TransmitReceive(&hspi2, (uint8_t*)&byte, buf, 1, 10);
+    res = HAL_SPI_TransmitReceive(&hspi2, (uint8_t*)&byte, buf, 1, 10);
     return *buf;
 }
 //上面这一部分是SPI读写寄存器
 //*****************************************************************************************************
 //从这一部分开始就是数据采集和数据处理过程
-Lis3dData Lis3dGetData(void)
+void Lis3dGetData(Lis3dData *p)
 {
   Lis3dData Data3D;
   Lis3dSourceData SourceData;
@@ -117,7 +118,9 @@ Lis3dData Lis3dGetData(void)
   Data3D.Dx = (int16_t)((((int16_t)SourceData.Dx_L << 8)) | (int16_t)SourceData.Dx_H);
   Data3D.Dy = (int16_t)((((int16_t)SourceData.Dy_L << 8)) | (int16_t)SourceData.Dy_H);
   Data3D.Dz = (int16_t)((((int16_t)SourceData.Dz_L << 8)) | (int16_t)SourceData.Dz_H);
-  return Data3D;
+	(*p).Dx = Data3D.Dx;
+	(*p).Dy = Data3D.Dy;
+	(*p).Dz = Data3D.Dz;
 }
 
 char Lis3dCouter(Lis3dData *data)

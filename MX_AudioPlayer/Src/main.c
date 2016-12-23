@@ -42,6 +42,7 @@
 #include "gpio.h"
 
 /* USER CODE BEGIN Includes */
+#include "Lis3D.h"
 #include "AF.h"
 #include "AP.h"
 #include "string.h"
@@ -74,7 +75,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-	
+	Lis3dData demo;
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -99,6 +100,8 @@ int main(void)
   HAL_GPIO_WritePin(Power_EN_GPIO_Port, Power_EN_Pin, GPIO_PIN_SET);
 	res = f_mount(&fs, (const TCHAR*)"0", 1);
 	TX_CFG(&cfg);
+	Lis3d_Init();
+	Lis3dGetData(&demo);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -108,7 +111,8 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-
+		HAL_Delay(100);
+		Lis3dGetData(&demo);
   }
   /* USER CODE END 3 */
 

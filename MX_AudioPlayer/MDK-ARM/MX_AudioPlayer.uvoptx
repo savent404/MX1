@@ -177,17 +177,46 @@
           <Name>-U-O142 -O2254 -S0 -C0 -N00("ARM CoreSight SW-DP") -D00(2BA01477) -L00(0) -TO18 -TC10000000 -TP21 -TDS8007 -TDT0 -TDC1F -TIEFFFFFFFF -TIP8 -FO7 -FD20000000 -FC800 -FN1 -FF0STM32F10x_512 -FS08000000 -FL060000 -FP0($$Device:STM32F103RD$Flash\STM32F10x_512.FLM)</Name>
         </SetRegEntry>
       </TargetDriverDllRegistry>
+<<<<<<< Updated upstream
       <Breakpoint/>
+=======
+      <Breakpoint>
+        <Bp>
+          <Number>0</Number>
+          <Type>0</Type>
+          <LineNumber>108</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134231630</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>../Src/main.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\MX_AudioPlayer\../Src/main.c\108</Expression>
+        </Bp>
+      </Breakpoint>
+>>>>>>> Stashed changes
       <WatchWindow1>
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
+<<<<<<< Updated upstream
           <ItemText>cfg,0x0A</ItemText>
+=======
+          <ItemText>demo</ItemText>
+>>>>>>> Stashed changes
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
+<<<<<<< Updated upstream
           <ItemText>Lbuf</ItemText>
+=======
+          <ItemText>res</ItemText>
+>>>>>>> Stashed changes
         </Ww>
       </WatchWindow1>
       <Tracepoint>
@@ -236,7 +265,7 @@
 
   <Group>
     <GroupName>Application/User</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -716,7 +745,7 @@
 
   <Group>
     <GroupName>Application/MDK-ARM</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -736,7 +765,7 @@
 
   <Group>
     <GroupName>Drivers/CMSIS</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -756,7 +785,7 @@
 
   <Group>
     <GroupName>Application/AudioPlayer</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -775,20 +804,52 @@
   </Group>
 
   <Group>
+<<<<<<< Updated upstream
     <GroupName>Application/CFG</GroupName>
+=======
+    <GroupName>Lib</GroupName>
+>>>>>>> Stashed changes
     <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
     <File>
       <GroupNumber>7</GroupNumber>
+<<<<<<< Updated upstream
+=======
+      <FileNumber>41</FileNumber>
+      <FileType>4</FileType>
+      <tvExp>0</tvExp>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <bDave2>0</bDave2>
+      <PathWithFileName>..\Src\STM32_F1xx_HALLib.lib</PathWithFileName>
+      <FilenameWithoutPath>STM32_F1xx_HALLib.lib</FilenameWithoutPath>
+      <RteFlg>0</RteFlg>
+      <bShared>0</bShared>
+    </File>
+  </Group>
+
+  <Group>
+    <GroupName>Application/Lis3D</GroupName>
+    <tvExp>1</tvExp>
+    <tvExpOptDlg>0</tvExpOptDlg>
+    <cbSel>0</cbSel>
+    <RteFlg>0</RteFlg>
+    <File>
+      <GroupNumber>8</GroupNumber>
+>>>>>>> Stashed changes
       <FileNumber>42</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
+<<<<<<< Updated upstream
       <PathWithFileName>..\..\TX_CFG\tx_cfg.c</PathWithFileName>
       <FilenameWithoutPath>tx_cfg.c</FilenameWithoutPath>
+=======
+      <PathWithFileName>..\..\Lis3D\Lis3D.c</PathWithFileName>
+      <FilenameWithoutPath>Lis3D.c</FilenameWithoutPath>
+>>>>>>> Stashed changes
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
