@@ -45,6 +45,7 @@
 #include "AF.h"
 #include "AP.h"
 #include "string.h"
+#include "tx_cfg.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -64,7 +65,9 @@ void Error_Handler(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
-
+FATFS fs;
+FRESULT res;
+struct config cfg;
 /* USER CODE END 0 */
 
 int main(void)
@@ -93,7 +96,9 @@ int main(void)
   MX_FATFS_Init();
 
   /* USER CODE BEGIN 2 */
-
+  HAL_GPIO_WritePin(Power_EN_GPIO_Port, Power_EN_Pin, GPIO_PIN_SET);
+	res = f_mount(&fs, (const TCHAR*)"0", 1);
+	TX_CFG(&cfg);
   /* USER CODE END 2 */
 
   /* Infinite loop */

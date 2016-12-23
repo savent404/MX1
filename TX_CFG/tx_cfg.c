@@ -116,10 +116,10 @@ static int TextLine(FIL *pt, char *des) {
     char chara[1];
     UINT cnt = 0;
     int num = 1;
-    f_read(pt, chara, 1, &cnt)
+    f_read(pt, chara, 1, &cnt);
     if (cnt <= 0)
         return 0;
-    while (*chara != '\n' && cnt >= 0) {
+    while (*chara != '\n' && cnt > 0) {
         *des++ = *chara;
         f_read(pt, chara, 1, &cnt);
         num += 1;

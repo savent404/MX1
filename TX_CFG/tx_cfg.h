@@ -3,9 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define DEFAULT_TEXT_PATH "./setting.txt"
+#define DEFAULT_TEXT_PATH "0:/SETTING.txt"
 #define VAR_NUM     32
-#define LINUX_TEST  1
+#define LINUX_TEST  0
 // Default name string
 
 #if LINUX_TEST
