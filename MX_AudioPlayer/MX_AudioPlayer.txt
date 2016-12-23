@@ -1,6 +1,6 @@
 Configuration	MX_AudioPlayer
 STM32CubeMX 	4.16.1
-Date	12/13/2016
+Date	12/23/2016
 MCU	STM32F103RDTx
 
 
@@ -17,10 +17,8 @@ SDIO	SD 4 bits Wide bus	SDIO_D3	PC11
 SPI2	Full-Duplex Master	SPI2_MISO	PB14
 SPI2	Full-Duplex Master	SPI2_MOSI	PB15
 SPI2	Full-Duplex Master	SPI2_SCK	PB13
-SYS	JTAG (4 pins)	SYS_JTCK-SWCLK	PA14
-SYS	JTAG (4 pins)	SYS_JTDI	PA15
-SYS	JTAG (4 pins)	SYS_JTDO-TRACESWO	PB3
-SYS	JTAG (4 pins)	SYS_JTMS-SWDIO	PA13
+SYS	Serial Wire	SYS_JTCK-SWCLK	PA14
+SYS	Serial Wire	SYS_JTMS-SWDIO	PA13
 SYS	SysTick	SYS_VS_Systick	VP_SYS_VS_Systick
 TIM2	Reset Mode	TIM2_VS_ControllerModeReset	VP_TIM2_VS_ControllerModeReset
 TIM2	ITR0	TIM2_VS_ClockSourceITR	VP_TIM2_VS_ClockSourceITR
@@ -52,7 +50,6 @@ Pin Nb	PINs	FUNCTIONs	LABELs
 44	PA11	GPIO_Output	LED4
 46	PA13	SYS_JTMS-SWDIO	
 49	PA14	SYS_JTCK-SWCLK	
-50	PA15	SYS_JTDI	
 51	PC10	SDIO_D2	
 52	PC11	SDIO_D3	
 53	PC12	SDIO_CK	
@@ -72,7 +69,7 @@ Firmware Package Name and Version : STM32Cube FW_F1 V1.4.0
 
 Code Generation Settings : 
 STM32Cube Firmware Library Package : Copy all used libraries into the project folder
-Generate peripheral initialization as a pair of '.c/.h' files per peripherals : No
+Generate peripheral initialization as a pair of '.c/.h' files per peripherals : Yes
 Backup previously generated files when re-generating : No
 Delete previously generated files when not re-generated : Yes
 Set all free pins as analog (to optimize the power consumption) : No
