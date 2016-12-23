@@ -42,6 +42,7 @@
 #include "gpio.h"
 
 /* USER CODE BEGIN Includes */
+#include "LED.h"
 #include "Lis3D.h"
 #include "AF.h"
 #include "AP.h"
@@ -75,7 +76,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-	Lis3dData demo;
+	
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -108,6 +109,7 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
+
   }
   /* USER CODE END 3 */
 
