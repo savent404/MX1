@@ -51,6 +51,8 @@
 #define LED8_GPIO_Port GPIOC
 #define Power_ADC_Pin GPIO_PIN_0
 #define Power_ADC_GPIO_Port GPIOA
+#define DAC_OUT_Pin GPIO_PIN_4
+#define DAC_OUT_GPIO_Port GPIOA
 #define Audio_EN_Pin GPIO_PIN_5
 #define Audio_EN_GPIO_Port GPIOA
 #define Power_EN_Pin GPIO_PIN_2
@@ -63,14 +65,14 @@
 #define CS_GPIO_Port GPIOB
 #define LIS3DH_INTI_Pin GPIO_PIN_6
 #define LIS3DH_INTI_GPIO_Port GPIOC
-#define LED1_Pin GPIO_PIN_3
-#define LED1_GPIO_Port GPIOB
-#define LED2_Pin GPIO_PIN_4
-#define LED2_GPIO_Port GPIOB
-#define LED3_Pin GPIO_PIN_5
-#define LED3_GPIO_Port GPIOB
-#define LED4_Pin GPIO_PIN_6
-#define LED4_GPIO_Port GPIOB
+#define LED1_Pin GPIO_PIN_8
+#define LED1_GPIO_Port GPIOA
+#define LED2_Pin GPIO_PIN_9
+#define LED2_GPIO_Port GPIOA
+#define LED3_Pin GPIO_PIN_10
+#define LED3_GPIO_Port GPIOA
+#define LED4_Pin GPIO_PIN_11
+#define LED4_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
