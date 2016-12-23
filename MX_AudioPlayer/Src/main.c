@@ -100,8 +100,6 @@ int main(void)
   HAL_GPIO_WritePin(Power_EN_GPIO_Port, Power_EN_Pin, GPIO_PIN_SET);
 	res = f_mount(&fs, (const TCHAR*)"0", 1);
 	TX_CFG(&cfg);
-	Lis3d_Init();
-	Lis3dGetData(&demo);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -111,8 +109,8 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-		HAL_Delay(100);
-		Lis3dGetData(&demo);
+//		HAL_Delay(100);
+//		Lis3dGetData(&demo);
   }
   /* USER CODE END 3 */
 

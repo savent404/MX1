@@ -36,24 +36,16 @@ const char name_string[][10] = {
 };
 
 void TX_CFG(struct config *cfg) {
-    
-    char Lbuf[20];
-    char name[10], val[10];
+    extern FRESULT res;
+    char *Lbuf;
+    char name[NAME_SIZE], val[VAL_SIZE];
+		static char sbuf[SBUF_SIZE];
     int  pos = 0;
-    #if LINUX_TEST
-    int fd;
-    fd = open(DEFAULT_TEXT_PATH, O_RDONLY);
-    if (fd <= 0) {
-        return;
-    }
-    while (TextLine(fd, Lbuf) != 0) {
-    #else
     FIL fp;
     if (f_open(&fp, DEFAULT_TEXT_PATH, FA_READ) != FR_OK) {
         return;
     }
-    while (TextLine(&fp, Lbuf) != 0) {
-    #endif
+    while (Lbuf = f_gets(sbuf, SBUF_SIZE, &fp), Lbuf) {
         TextNameVal(Lbuf, name, val);
         for (pos = 0; pos < VAR_NUM; pos++) {
             if (strcasecmp(name, name_string[pos]))
@@ -97,40 +89,12 @@ void TX_CFG(struct config *cfg) {
             case 31: cfg->Ch = atoi(val); break;
         }
     }
+		res = f_close(&fp);
 }
-#if LINUX_TEST
-static int TextLine(int fd, char *des) {
-    char chara[1];
-    int num = 1;
-    read(fd, chara, 1);
-    while (*chara != '\n') {
-        *des++ = *chara;
-        read(fd, chara, 1);
-        num += 1;
-    }
-    *des = '\0';
-    return num;
-}
-#else
-static int TextLine(FIL *pt, char *des) {
-    char chara[1];
-    UINT cnt = 0;
-    int num = 1;
-    f_read(pt, chara, 1, &cnt);
-    if (cnt <= 0)
-        return 0;
-    while (*chara != '\n' && cnt > 0) {
-        *des++ = *chara;
-        f_read(pt, chara, 1, &cnt);
-        num += 1;
-    }
-    *des = '\0';
-    return num;
-}
-#endif
 
-static void TextNameVal(char *line, char *name, char *val) {
-    while (*line != '=') {
+static void TextNameVal(char *line, char *name, char *val) { 
+		uint8_t name_cnt = 0, val_cnt = 0;
+    while (*line != '=' && name_cnt < NAME_SIZE) {
         //ignore ' ' & '\t'
         if (*line == ' ' || *line == '\t') {
             line += 1;
@@ -144,25 +108,27 @@ static void TextNameVal(char *line, char *name, char *val) {
         }
         //copy to name
         *name++ = *line++;
+				name_cnt++;
     }
 
     //offset
     line += 1;
 
-    while (*line != '\0') {
+    while (*line != '\0' && val_cnt < VAL_SIZE) {
         //ignore ' ' & '\t'
         if (*line == ' ' || *line == '\t') {
             line += 1;
             continue;
         }
         //
-        if (*line == '/' && *(line + 1) == '/') {
+        if (*line == '/') {
             *val = 0;
             *name = 0;
             return;
         }
         //copy
         *val++ = *line++;
+				val_cnt++;
     }
     *val = 0;
     *name = 0;

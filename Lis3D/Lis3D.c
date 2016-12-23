@@ -91,12 +91,11 @@ static void SPI1_CS_High(void)
     HAL_GPIO_WritePin(CS_GPIO_Port, CS_Pin, GPIO_PIN_SET);
 }
 
-__IO HAL_StatusTypeDef res = 0;
 static uint8_t SPI_LIS3DH_SendByte(uint8_t byte)
 {
     extern SPI_HandleTypeDef hspi2;
     uint8_t buf[1];
-    res = HAL_SPI_TransmitReceive(&hspi2, (uint8_t*)&byte, buf, 1, 10);
+    HAL_SPI_TransmitReceive(&hspi2, (uint8_t*)&byte, buf, 1, 10);
     return *buf;
 }
 //上面这一部分是SPI读写寄存器

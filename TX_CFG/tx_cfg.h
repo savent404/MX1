@@ -5,7 +5,9 @@
 
 #define DEFAULT_TEXT_PATH "0:/SETTING.txt"
 #define VAR_NUM     32
-#define LINUX_TEST  0
+#define SBUF_SIZE 200
+#define NAME_SIZE 20
+#define VAL_SIZE  20
 // Default name string
 
 #if LINUX_TEST
@@ -99,7 +101,7 @@ static int TextLine(int fd,char *des);
 
 
 #else
-static int TextLine(FIL *pt, char*des);
+static size_t TextLine(FIL *pt, char*des);
 #endif
 
 #endif
