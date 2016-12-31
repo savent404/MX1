@@ -32,6 +32,7 @@
   */
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f1xx_hal.h"
+#include "cmsis_os.h"
 #include "adc.h"
 #include "dac.h"
 #include "dma.h"
@@ -60,6 +61,7 @@
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 void Error_Handler(void);
+void MX_FREERTOS_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -69,7 +71,9 @@ void Error_Handler(void);
 /* USER CODE BEGIN 0 */
 FATFS fs;
 FRESULT res;
-struct config cfg;
+struct config SYS_CFG;
+uint32_t i;
+
 /* USER CODE END 0 */
 
 int main(void)
@@ -95,14 +99,28 @@ int main(void)
   MX_SDIO_SD_Init();
   MX_SPI2_Init();
   MX_TIM2_Init();
-  MX_FATFS_Init();
 
   /* USER CODE BEGIN 2 */
+  MX_FATFS_Init();
+  res = f_mount(&fs, (const TCHAR*)"0", 1);
+  TX_CFG(&SYS_CFG);
+  HAL_Delay(SYS_CFG.Tpon);
   HAL_GPIO_WritePin(Power_EN_GPIO_Port, Power_EN_Pin, GPIO_PIN_SET);
-	res = f_mount(&fs, (const TCHAR*)"0", 1);
+	while (HAL_GPIO_ReadPin(Power_KEY_GPIO_Port, Power_KEY_Pin)){
+		;
+	}
   /* USER CODE END 2 */
 
+  /* Call init function for freertos objects (in freertos.c) */
+  MX_FREERTOS_Init();
+
+  /* Start scheduler */
+  osKernelStart();
+  
+  /* We should never get here as control is now taken by the scheduler */
+
   /* Infinite loop */
+	
   /* USER CODE BEGIN WHILE */
   while (1)
   {
@@ -158,12 +176,33 @@ void SystemClock_Config(void)
   HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
 
   /* SysTick_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(SysTick_IRQn, 15, 0);
 }
 
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
+
+/**
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM8 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+/* USER CODE BEGIN Callback 0 */
+
+/* USER CODE END Callback 0 */
+  if (htim->Instance == TIM8) {
+    HAL_IncTick();
+  }
+/* USER CODE BEGIN Callback 1 */
+
+/* USER CODE END Callback 1 */
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.
