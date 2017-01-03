@@ -7,6 +7,8 @@
 #include <stdio.h>
 extern osThreadId defaultTaskHandle;
 extern osThreadId GPIOHandle;
+extern osMessageQId SIG_GPIOHandle;
+extern osMessageQId SIG_PLAYWAVHandle;
 
 const uint32_t SIG_POWERKEY_DOWN = 0x0001;
 const uint32_t SIG_POWERKEY_UP   = 0x0002;
@@ -24,20 +26,22 @@ void Handle_System(void const * argument)
   printf(">>>System in ready mode\n");
   System_Status = SYS_ready;
   //System into READY
-  osSignalSet(WAV_CTLHandle, SIG_AUDIO_STARTUP);
+  while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_STARTUP, 0)) {
+    ;
+  }
   while(1)
   {
-      evt = osSignalWait(0, osWaitForever);
+      evt = osMessageGet(SIG_GPIOHandle, 10);
 
       if (System_Status     == SYS_ready
-      &&  evt.status        == osEventSignal
+      &&  evt.status        == osEventMessage
       &&  evt.value.signals &  SIG_POWERKEY_DOWN){
         cnt = 0;
         // wait for power key rise.
         while (1) {
-          evt = osSignalWait(SIG_POWERKEY_UP, 1);
+          evt = osMessageGet(SIG_GPIOHandle, 1);
 
-          if (evt.status        == osEventSignal 
+          if (evt.status        == osEventMessage 
           &&  evt.value.signals &  SIG_POWERKEY_UP)
           break;
           else cnt++;
@@ -48,30 +52,36 @@ void Handle_System(void const * argument)
           ||  (SYS_CFG.Tpoff <= SYS_CFG.Tout && SYS_CFG.Tout > cnt)) {
             printf(">>>System in close mode\n");  
             System_Status = SYS_close;
+						//System into CLOSE
+            while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_POWEROFF, 0)) {
+              ;
+            }
+						osDelay(2000);
 						HAL_GPIO_WritePin(Power_EN_GPIO_Port, Power_EN_Pin, GPIO_PIN_RESET);
 						continue;
-            //System into CLOSE
-            osSignalSet(WAV_CTLHandle, SIG_AUDIO_POWEROFF);
           }
           else {
             printf(">>>System in running mode\n");
             System_Status = SYS_running;
+						//System into RUNNING
+            while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_INTORUN, 0)) {
+              ;
+            }
 						continue;
-            //System into RUNNING
-            osSignalSet(WAV_CTLHandle, SIG_AUDIO_INTORUN);
+            
           }
         }
       } //end of System = ready, event == Power key
 
       if (System_Status     == SYS_running
-      &&  evt.status        == osEventSignal
+      &&  evt.status        == osEventMessage
       &&  evt.value.signals &  SIG_POWERKEY_DOWN) {
         cnt = 0;
         // wait for power key rise.
         while (1) {
-          evt = osSignalWait(SIG_POWERKEY_UP, 1);
+          evt = osMessageGet(SIG_GPIOHandle, 1);
 
-          if (evt.status        == osEventSignal 
+          if (evt.status        == osEventMessage 
           &&  evt.value.signals &  SIG_POWERKEY_UP)
           break;
           else cnt++;
@@ -80,9 +90,12 @@ void Handle_System(void const * argument)
         if (cnt >= SYS_CFG.Tin) {
           printf(">>>System in ready mode\n");
           System_Status = SYS_ready;
+					//System into READY
+          while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_OUTRUN, 0)) {
+            ;
+          }
 					continue;
-          //System into READY
-          osSignalSet(WAV_CTLHandle, SIG_AUDIO_OUTRUN);
+          
         }
       } //end of System = running, event == Power key
   }
@@ -110,9 +123,13 @@ void Handle_GPIO(void const * argument)
       else
 			printf("Power KEY UP\n");
       if (GPIO_Buffer == GPIO_PIN_SET)
-      osSignalSet(defaultTaskHandle, SIG_POWERKEY_DOWN);
+      while (osMessagePut(SIG_GPIOHandle, SIG_POWERKEY_DOWN, 0)) {
+        ;
+      }
       else
-      osSignalSet(defaultTaskHandle, SIG_POWERKEY_UP);
+      while (osMessagePut(SIG_GPIOHandle, SIG_POWERKEY_UP, 0)) {
+        ;
+      }
 			
 			
     }
@@ -123,14 +140,18 @@ void Handle_GPIO(void const * argument)
       if (GPIO_Buffer == usr)
       continue;
       usr = GPIO_Buffer;
-			if (GPIO_Buffer == GPIO_PIN_SET)
+			if (GPIO_Buffer == GPIO_PIN_RESET)
       printf("User KEY down\n");
       else
 			printf("User KEY UP\n");
-      if (GPIO_Buffer == GPIO_PIN_SET)
-      osSignalSet(defaultTaskHandle, SIG_USERKEY_DOWN);
+      if (GPIO_Buffer == GPIO_PIN_RESET)
+      while (osMessagePut(SIG_GPIOHandle, SIG_USERKEY_DOWN, 0)) {
+        ;
+      }
       else
-      osSignalSet(defaultTaskHandle, SIG_USERKEY_UP);
+      while (osMessagePut(SIG_GPIOHandle, SIG_USERKEY_UP, 0)) {
+        ;
+      }
     }
     osDelay(3);
   }

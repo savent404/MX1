@@ -37,7 +37,7 @@
 #include "cmsis_os.h"
 
 /* USER CODE BEGIN Includes */     
-
+#include "stdio.h"
 /* USER CODE END Includes */
 
 /* Variables -----------------------------------------------------------------*/
@@ -46,6 +46,8 @@ osThreadId GPIOHandle;
 osThreadId WAV_CTLHandle;
 osThreadId DAC_CTLHandle;
 osMessageQId pWAVHandle;
+osMessageQId SIG_GPIOHandle;
+osMessageQId SIG_PLAYWAVHandle;
 osSemaphoreId DMA_FLAGHandle;
 
 /* USER CODE BEGIN Variables */
@@ -66,6 +68,17 @@ void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 /* USER CODE END FunctionPrototypes */
 
 /* Hook prototypes */
+void vApplicationStackOverflowHook(xTaskHandle xTask, signed char *pcTaskName);
+
+/* USER CODE BEGIN 4 */
+void vApplicationStackOverflowHook(xTaskHandle xTask, signed char *pcTaskName)
+{
+   /* Run time stack overflow checking is performed if
+   configCHECK_FOR_STACK_OVERFLOW is defined to 1 or 2. This hook function is
+   called if a stack overflow is detected. */
+	printf("Handle OVERFLOW:%s\n", pcTaskName);
+}
+/* USER CODE END 4 */
 
 /* Init FreeRTOS */
 
@@ -101,11 +114,11 @@ void MX_FREERTOS_Init(void) {
   GPIOHandle = osThreadCreate(osThread(GPIO), NULL);
 
   /* definition and creation of WAV_CTL */
-  osThreadDef(WAV_CTL, WAVHandle, osPriorityIdle, 0, 128);
+  osThreadDef(WAV_CTL, WAVHandle, osPriorityAboveNormal, 0, 400);
   WAV_CTLHandle = osThreadCreate(osThread(WAV_CTL), NULL);
 
   /* definition and creation of DAC_CTL */
-  osThreadDef(DAC_CTL, DACHandle, osPriorityIdle, 0, 128);
+  osThreadDef(DAC_CTL, DACHandle, osPriorityHigh, 0, 128);
   DAC_CTLHandle = osThreadCreate(osThread(DAC_CTL), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
@@ -116,6 +129,14 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of pWAV */
   osMessageQDef(pWAV, 3, uint32_t);
   pWAVHandle = osMessageCreate(osMessageQ(pWAV), NULL);
+
+  /* definition and creation of SIG_GPIO */
+  osMessageQDef(SIG_GPIO, 4, uint8_t);
+  SIG_GPIOHandle = osMessageCreate(osMessageQ(SIG_GPIO), NULL);
+
+  /* definition and creation of SIG_PLAYWAV */
+  osMessageQDef(SIG_PLAYWAV, 4, uint8_t);
+  SIG_PLAYWAVHandle = osMessageCreate(osMessageQ(SIG_PLAYWAV), NULL);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */

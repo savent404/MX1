@@ -14,20 +14,21 @@ __inline __weak uint16_t convert_single(uint16_t src);
 __inline __weak uint16_t convert_double(uint16_t src_1, uint16_t src_2);
 
 /* When System from Close into Ready */
-extern const uint32_t SIG_AUDIO_STARTUP;
+extern const uint8_t SIG_AUDIO_STARTUP;
 
 /* When System from Ready into Close */
-extern const uint32_t SIG_AUDIO_POWEROFF;
+extern const uint8_t SIG_AUDIO_POWEROFF;
 
 /* When SYstem from Ready into running */
-extern const uint32_t SIG_AUDIO_INTORUN;
+extern const uint8_t SIG_AUDIO_INTORUN;
 
 /* When System from Running into Reayd */
-extern const uint32_t SIG_AUDIO_OUTRUN;
+extern const uint8_t SIG_AUDIO_OUTRUN;
 
 extern osThreadId    WAV_CTLHandle;
 extern osThreadId    DAC_CTLHandle;
 extern osSemaphoreId DMA_FLAGHandle;
 extern osMessageQId  pWAVHandle;
+extern osMessageQId  SIG_PLAYWAVHandle;
 
 #endif
