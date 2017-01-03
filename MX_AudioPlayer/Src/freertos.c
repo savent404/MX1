@@ -4,7 +4,7 @@
   * Description        : Code for freertos applications
   ******************************************************************************
   *
-  * COPYRIGHT(c) 2016 STMicroelectronics
+  * COPYRIGHT(c) 2017 STMicroelectronics
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -43,6 +43,10 @@
 /* Variables -----------------------------------------------------------------*/
 osThreadId defaultTaskHandle;
 osThreadId GPIOHandle;
+osThreadId WAV_CTLHandle;
+osThreadId DAC_CTLHandle;
+osMessageQId pWAVHandle;
+osSemaphoreId DMA_FLAGHandle;
 
 /* USER CODE BEGIN Variables */
 
@@ -51,6 +55,8 @@ osThreadId GPIOHandle;
 /* Function prototypes -------------------------------------------------------*/
 void Handle_System(void const * argument);
 void Handle_GPIO(void const * argument);
+void WAV(void const * argument);
+void DAC(void const * argument);
 
 extern void MX_FATFS_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -72,6 +78,11 @@ void MX_FREERTOS_Init(void) {
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
 
+  /* Create the semaphores(s) */
+  /* definition and creation of DMA_FLAG */
+  osSemaphoreDef(DMA_FLAG);
+  DMA_FLAGHandle = osSemaphoreCreate(osSemaphore(DMA_FLAG), 1);
+
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
   /* USER CODE END RTOS_SEMAPHORES */
@@ -89,9 +100,22 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(GPIO, Handle_GPIO, osPriorityIdle, 0, 128);
   GPIOHandle = osThreadCreate(osThread(GPIO), NULL);
 
+  /* definition and creation of WAV_CTL */
+  osThreadDef(WAV_CTL, WAV, osPriorityIdle, 0, 128);
+  WAV_CTLHandle = osThreadCreate(osThread(WAV_CTL), NULL);
+
+  /* definition and creation of DAC_CTL */
+  osThreadDef(DAC_CTL, DAC, osPriorityIdle, 0, 128);
+  DAC_CTLHandle = osThreadCreate(osThread(DAC_CTL), NULL);
+
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
+
+  /* Create the queue(s) */
+  /* definition and creation of pWAV */
+  osMessageQDef(pWAV, 3, uint32_t);
+  pWAVHandle = osMessageCreate(osMessageQ(pWAV), NULL);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
@@ -123,6 +147,30 @@ __weak void Handle_GPIO(void const * argument)
     osDelay(1);
   }
   /* USER CODE END Handle_GPIO */
+}
+
+/* WAV function */
+__weak void WAV(void const * argument)
+{
+  /* USER CODE BEGIN WAV */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END WAV */
+}
+
+/* DAC function */
+__weak void DAC(void const * argument)
+{
+  /* USER CODE BEGIN DAC */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END DAC */
 }
 
 /* USER CODE BEGIN Application */

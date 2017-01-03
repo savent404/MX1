@@ -3,6 +3,7 @@
 #include "cmsis_os.h"
 #include "stm32f1xx_hal.h"
 #include "tx_cfg.h"
+#include "AP_OS.h"
 #include <stdio.h>
 extern osThreadId defaultTaskHandle;
 extern osThreadId GPIOHandle;
@@ -23,6 +24,7 @@ void Handle_System(void const * argument)
   printf(">>>System in ready mode\n");
   System_Status = SYS_ready;
   //System into READY
+  osSignalSet(WAV_CTLHandle, SIG_AUDIO_STARTUP);
   while(1)
   {
       evt = osSignalWait(0, osWaitForever);
@@ -49,12 +51,14 @@ void Handle_System(void const * argument)
 						HAL_GPIO_WritePin(Power_EN_GPIO_Port, Power_EN_Pin, GPIO_PIN_RESET);
 						continue;
             //System into CLOSE
+            osSignalSet(WAV_CTLHandle, SIG_AUDIO_POWEROFF);
           }
           else {
             printf(">>>System in running mode\n");
             System_Status = SYS_running;
 						continue;
             //System into RUNNING
+            osSignalSet(WAV_CTLHandle, SIG_AUDIO_INTORUN);
           }
         }
       } //end of System = ready, event == Power key
@@ -78,6 +82,7 @@ void Handle_System(void const * argument)
           System_Status = SYS_ready;
 					continue;
           //System into READY
+          osSignalSet(WAV_CTLHandle, SIG_AUDIO_OUTRUN);
         }
       } //end of System = running, event == Power key
   }
