@@ -25,7 +25,7 @@ static uint16_t audio_buf1[osFIFO_NUM][osFIFO_SIZE],
     * Play single Wav file
     * Play double Wav file
 */
-void WAV(void const * argument)
+void WAVHandle(void const * argument)
 {
   uint8_t pos1, pos2;
   osEvent evt;
@@ -43,7 +43,7 @@ void WAV(void const * argument)
       break;
       f_read(&file_1, &pcm1, sizeof(pcm1), &cnt_1);
       f_read(&file_1, &data1, sizeof(data1), &cnt_1);
-      data_1.size -= sizeof(pcm1) + sizoef(data1);
+      data1.size -= sizeof(pcm1) + sizeof(data1);
       pos1 = 0;
       while (1) {
         /* No enuough buffer, exit */
@@ -51,7 +51,7 @@ void WAV(void const * argument)
         break;
         /* Read buffer and waiting for put succese. */
         f_read(&file_1, audio_buf1[pos1], osFIFO_SIZE, &cnt_1);
-        pcm1.size -= &cnt_1;
+        data1.size -= cnt_1;
         osMessagePut(pWAVHandle, (uint32_t)audio_buf1[pos1], 0);
         pos1 += 1;
         pos1 %= osFIFO_NUM;
@@ -73,7 +73,7 @@ void WAV(void const * argument)
         break;
         /* Read buffer and waiting for put succese. */
         f_read(&file_1, audio_buf1[pos1], osFIFO_SIZE, &cnt_1);
-        pcm1.size -= &cnt_1;
+        data1.size -= cnt_1;
         osMessagePut(pWAVHandle, (uint32_t)audio_buf1[pos1], 0);
         pos1 += 1;
         pos1 %= osFIFO_NUM;
@@ -99,7 +99,7 @@ void WAV(void const * argument)
 /* Waiting for Message Queue.
    If no more Message Queue, Stop DAC output
 */
-void DAC(void const * argument)
+void DACHandle(void const * argument)
 {
   osEvent evt;
   static  enum {running, stopped} flag = stopped;
@@ -119,14 +119,14 @@ void DAC(void const * argument)
       //Waiting for DAC DMA ConvCpltCall
       if (flag == running) {
         osSemaphoreWait(DMA_FLAGHandle, osWaitForever);
-        HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*)evt.value.p, FIFO_SIZE, DAC_ALIGN_12B_R);
+        HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*)evt.value.p, osFIFO_SIZE, DAC_ALIGN_12B_R);
       }
       //restart DAC DMA mode
       else {
         osSemaphoreWait(DMA_FLAGHandle, osWaitForever);
         HAL_TIM_Base_Start(&htim2);
         HAL_GPIO_WritePin(Audio_EN_GPIO_Port, Audio_EN_Pin, GPIO_PIN_SET);
-        HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*)evt.value.p, FIFO_SIZE, DAC_ALIGN_12B_R);
+        HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*)evt.value.p, osFIFO_SIZE, DAC_ALIGN_12B_R);
       }
     }
   }

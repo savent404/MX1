@@ -55,8 +55,8 @@ osSemaphoreId DMA_FLAGHandle;
 /* Function prototypes -------------------------------------------------------*/
 void Handle_System(void const * argument);
 void Handle_GPIO(void const * argument);
-void WAV(void const * argument);
-void DAC(void const * argument);
+void WAVHandle(void const * argument);
+void DACHandle(void const * argument);
 
 extern void MX_FATFS_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -101,11 +101,11 @@ void MX_FREERTOS_Init(void) {
   GPIOHandle = osThreadCreate(osThread(GPIO), NULL);
 
   /* definition and creation of WAV_CTL */
-  osThreadDef(WAV_CTL, WAV, osPriorityIdle, 0, 128);
+  osThreadDef(WAV_CTL, WAVHandle, osPriorityIdle, 0, 128);
   WAV_CTLHandle = osThreadCreate(osThread(WAV_CTL), NULL);
 
   /* definition and creation of DAC_CTL */
-  osThreadDef(DAC_CTL, DAC, osPriorityIdle, 0, 128);
+  osThreadDef(DAC_CTL, DACHandle, osPriorityIdle, 0, 128);
   DAC_CTLHandle = osThreadCreate(osThread(DAC_CTL), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
@@ -149,28 +149,28 @@ __weak void Handle_GPIO(void const * argument)
   /* USER CODE END Handle_GPIO */
 }
 
-/* WAV function */
-__weak void WAV(void const * argument)
+/* WAVHandle function */
+__weak void WAVHandle(void const * argument)
 {
-  /* USER CODE BEGIN WAV */
+  /* USER CODE BEGIN WAVHandle */
   /* Infinite loop */
   for(;;)
   {
     osDelay(1);
   }
-  /* USER CODE END WAV */
+  /* USER CODE END WAVHandle */
 }
 
-/* DAC function */
-__weak void DAC(void const * argument)
+/* DACHandle function */
+__weak void DACHandle(void const * argument)
 {
-  /* USER CODE BEGIN DAC */
+  /* USER CODE BEGIN DACHandle */
   /* Infinite loop */
   for(;;)
   {
     osDelay(1);
   }
-  /* USER CODE END DAC */
+  /* USER CODE END DACHandle */
 }
 
 /* USER CODE BEGIN Application */
