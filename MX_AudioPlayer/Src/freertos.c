@@ -45,6 +45,7 @@ osThreadId defaultTaskHandle;
 osThreadId GPIOHandle;
 osThreadId WAV_CTLHandle;
 osThreadId DAC_CTLHandle;
+osThreadId x3DList_CTLHandle;
 osMessageQId pWAVHandle;
 osMessageQId SIG_GPIOHandle;
 osMessageQId SIG_PLAYWAVHandle;
@@ -59,6 +60,7 @@ void Handle_System(void const * argument);
 void Handle_GPIO(void const * argument);
 void WAVHandle(void const * argument);
 void DACHandle(void const * argument);
+void x3DListHandle(void const * argument);
 
 extern void MX_FATFS_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -120,6 +122,10 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of DAC_CTL */
   osThreadDef(DAC_CTL, DACHandle, osPriorityHigh, 0, 128);
   DAC_CTLHandle = osThreadCreate(osThread(DAC_CTL), NULL);
+
+  /* definition and creation of x3DList_CTL */
+  osThreadDef(x3DList_CTL, x3DListHandle, osPriorityNormal, 0, 128);
+  x3DList_CTLHandle = osThreadCreate(osThread(x3DList_CTL), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -192,6 +198,18 @@ __weak void DACHandle(void const * argument)
     osDelay(1);
   }
   /* USER CODE END DACHandle */
+}
+
+/* x3DListHandle function */
+__weak void x3DListHandle(void const * argument)
+{
+  /* USER CODE BEGIN x3DListHandle */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END x3DListHandle */
 }
 
 /* USER CODE BEGIN Application */

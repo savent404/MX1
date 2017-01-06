@@ -24,6 +24,20 @@ extern const uint8_t SIG_AUDIO_INTORUN;
 
 /* When System from Running into Reayd */
 extern const uint8_t SIG_AUDIO_OUTRUN;
+/* When System in Ready switch the Bank */
+extern const uint8_t SIG_AUDIO_BANKSWITCH;
+
+/* Triggers */
+/* When System in Running, Trigger B */
+extern const uint8_t SIG_AUDIO_TRIGGERB;
+/* When System in Running, Trigger C */
+extern const uint8_t SIG_AUDIO_TRIGGERC;
+/* When System in Running, Trigger D */
+extern const uint8_t SIG_AUDIO_TRIGGERD;
+/* When System in Running, Trigger E */
+extern const uint8_t SIG_AUDIO_TRIGGERE;
+/* When System in Running, Trigger E off */
+extern const uint8_t SIG_AUDIO_TRIGGEREOFF;
 
 extern osThreadId    WAV_CTLHandle;
 extern osThreadId    DAC_CTLHandle;
