@@ -9,6 +9,7 @@
 #include "tx_cfg.h"
 #include "math.h"
 #include "USR_CFG.h"
+#include "DEBUG_CFG.h"
 
 extern struct config SYS_CFG;
 
@@ -40,7 +41,7 @@ void Handle_System(void const* argument) {
   uint32_t cnt;
   osEvent evt;
   extern struct config SYS_CFG;
-  printf(">>>System in ready mode\n");
+  printf_SYSTEM(">>>System in ready mode\n");
   System_Status = SYS_ready;
   Trigger_Freeze_TIME.TB = 0, Trigger_Freeze_TIME.TC = 0,
   Trigger_Freeze_TIME.TD = 0;
@@ -65,12 +66,12 @@ void Handle_System(void const* argument) {
         else
           cnt++;
       }
-      printf("  Counting power key T:%dms\n", cnt);
+      printf_KEY("  Counting power key T:%dms\n", cnt);
       if (cnt >=
           (SYS_CFG.Tpoff > SYS_CFG.Tout ? SYS_CFG.Tout : SYS_CFG.Tpoff)) {
         if ((SYS_CFG.Tpoff >= SYS_CFG.Tout && SYS_CFG.Tpoff <= cnt) ||
             (SYS_CFG.Tpoff <= SYS_CFG.Tout && SYS_CFG.Tout > cnt)) {
-          printf(">>>System in close mode\n");
+          printf_SYSTEM(">>>System in close mode\n");
           System_Status = SYS_close;
           // System into CLOSE
           while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_POWEROFF, 0)) {
@@ -80,7 +81,7 @@ void Handle_System(void const* argument) {
           HAL_GPIO_WritePin(Power_EN_GPIO_Port, Power_EN_Pin, GPIO_PIN_RESET);
           continue;
         } else {
-          printf(">>>System in running mode\n");
+          printf_SYSTEM(">>>System in running mode\n");
           System_Status = SYS_running;
           // System into RUNNING
           while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_INTORUN, 0)) {
@@ -103,9 +104,9 @@ void Handle_System(void const* argument) {
         else
           cnt++;
       }
-      printf("  Counting power key T:%dms\n", cnt);
+      printf_KEY("  Counting power key T:%dms\n", cnt);
       if (cnt >= SYS_CFG.Tin) {
-        printf(">>>System in ready mode\n");
+        printf_SYSTEM(">>>System in ready mode\n");
         System_Status = SYS_ready;
         // System into READY
         while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_OUTRUN, 0)) {
@@ -126,11 +127,11 @@ void Handle_System(void const* argument) {
         else
           cnt++;
       }
-      printf("  Counting usr key T:%dms\n", cnt);
+      printf_KEY("  Counting usr key T:%dms\n", cnt);
       if (cnt >= SYS_CFG.Ts_switch) {
         sBANK += 1;
         sBANK %= nBank;
-        printf(">>>System put bank switch message\n");
+        printf_SYSTEM(">>>System put bank switch message\n");
         while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_BANKSWITCH, 0)) {
           ;
         }
@@ -148,7 +149,7 @@ void Handle_System(void const* argument) {
         if (evt.status == osEventMessage && evt.value.signals & SIG_USERKEY_UP)
           break;
         else if (++cnt >= SYS_CFG.TEtrigger) {
-          printf(">>>System put Trigger E\n");
+          printf_SYSTEM(">>>System put Trigger E\n");
           while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERE, 0)) {
             ;
           }
@@ -162,13 +163,13 @@ void Handle_System(void const* argument) {
               evt.value.signals & SIG_USERKEY_UP)
             break;
         }
-        printf(">>>System put Trigger E off\n");
+        printf_SYSTEM(">>>System put Trigger E off\n");
         while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGEREOFF, 0)) {
           ;
         }
       } else if (!Trigger_Freeze_TIME.TD) {
         Trigger_Freeze_TIME.TD = SYS_CFG.TDfreeze;
-        printf(">>>System put Trigger D\n");
+        printf_SYSTEM(">>>System put Trigger D\n");
         while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERD, 0)) {
           ;
         }
@@ -192,10 +193,11 @@ void Handle_GPIO(void const* argument) {
       if (GPIO_Buffer == power) continue;
 
       power = GPIO_Buffer;
-      if (GPIO_Buffer == GPIO_PIN_SET)
-        printf("Power KEY down\n");
-      else
-        printf("Power KEY UP\n");
+      if (GPIO_Buffer == GPIO_PIN_SET) {
+        printf_KEY("Power KEY down\n");
+      } else {
+        printf_KEY("Power KEY UP\n");
+      }
       if (GPIO_Buffer == GPIO_PIN_SET)
         while (osMessagePut(SIG_GPIOHandle, SIG_POWERKEY_DOWN, 0)) {
           ;
@@ -211,10 +213,11 @@ void Handle_GPIO(void const* argument) {
       GPIO_Buffer = HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin);
       if (GPIO_Buffer == usr) continue;
       usr = GPIO_Buffer;
-      if (GPIO_Buffer == GPIO_PIN_RESET)
-        printf("User KEY down\n");
-      else
-        printf("User KEY UP\n");
+      if (GPIO_Buffer == GPIO_PIN_RESET) {
+        printf_KEY("User KEY down\n");
+      } else {
+        printf_KEY("User KEY UP\n");
+      }
       if (GPIO_Buffer == GPIO_PIN_RESET)
         while (osMessagePut(SIG_GPIOHandle, SIG_USERKEY_DOWN, 0)) {
           ;
@@ -254,7 +257,7 @@ void x3DListHandle(void const* argument) {
 
     if (SYS_CFG.Cl <= ans && SYS_CFG.Ch >= ans && !Trigger_Freeze_TIME.TC) {
       Trigger_Freeze_TIME.TC = SYS_CFG.TCfreeze;
-      printf(">>>System put Trigger C\n");
+      printf_SYSTEM(">>>System put Trigger C\n");
       osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERC, 10);
       continue;
     }
@@ -262,7 +265,7 @@ void x3DListHandle(void const* argument) {
     else if (SYS_CFG.S1 <= ans && SYS_CFG.Sh >= ans &&
              !Trigger_Freeze_TIME.TB) {
       Trigger_Freeze_TIME.TB = SYS_CFG.TBfreeze;
-      printf(">>>System put Trigger B\n");
+      printf_SYSTEM(">>>System put Trigger B\n");
       osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERB, 10);
       continue;
     }
@@ -277,30 +280,30 @@ void TriggerFreez(void const* argument) {
   else if (Trigger_Freeze_TIME.TB > 0)
 
   {
-    printf("Trigger B reset\n");
+    printf_TRIGGERFREEZ("Trigger B reset\n");
     Trigger_Freeze_TIME.TB = 0;
   } else if (Trigger_Freeze_TIME.TB < 0) {
-    printf("Trigger B reset\n");
+    printf_TRIGGERFREEZ("Trigger B reset\n");
     Trigger_Freeze_TIME.TB = 0;
   }
 
   if (Trigger_Freeze_TIME.TC > 10)
     Trigger_Freeze_TIME.TC -= 10;
   else if (Trigger_Freeze_TIME.TC > 0) {
-    printf("Trigger C reset\n");
+    printf_TRIGGERFREEZ("Trigger C reset\n");
     Trigger_Freeze_TIME.TC = 0;
   } else if (Trigger_Freeze_TIME.TC < 0) {
-    printf("Trigger C reset\n");
+    printf_TRIGGERFREEZ("Trigger C reset\n");
     Trigger_Freeze_TIME.TC = 0;
   }
 
   if (Trigger_Freeze_TIME.TD > 10)
     Trigger_Freeze_TIME.TD -= 10;
   else if (Trigger_Freeze_TIME.TD > 0) {
-    printf("Trigger D reset\n");
+    printf_TRIGGERFREEZ("Trigger D reset\n");
     Trigger_Freeze_TIME.TD = 0;
   } else if (Trigger_Freeze_TIME.TD < 0) {
-    printf("Trigger D reset\n");
+    printf_TRIGGERFREEZ("Trigger D reset\n");
     Trigger_Freeze_TIME.TD = 0;
   }
 }
