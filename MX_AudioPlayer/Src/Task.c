@@ -24,7 +24,7 @@ const uint32_t SIG_POWERKEY_UP = 0x0002;
 const uint32_t SIG_USERKEY_DOWN = 0x0004;
 const uint32_t SIG_USERKEY_UP = 0x0008;
 
-volatile static struct TFT{
+volatile static struct TFT {
   volatile int32_t TB;
   volatile int32_t TC;
   volatile int32_t TD;
@@ -166,13 +166,13 @@ void Handle_System(void const* argument) {
         while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGEREOFF, 0)) {
           ;
         }
-      } else if(!Trigger_Freeze_TIME.TD) {
-          Trigger_Freeze_TIME.TD = SYS_CFG.TDfreeze;
-          printf(">>>System put Trigger D\n");
-          while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERD, 0)) {
-            ;
-          }
+      } else if (!Trigger_Freeze_TIME.TD) {
+        Trigger_Freeze_TIME.TD = SYS_CFG.TDfreeze;
+        printf(">>>System put Trigger D\n");
+        while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERD, 0)) {
+          ;
         }
+      }
     }
     // end of System = running , event == User Key
   }
@@ -251,18 +251,19 @@ void x3DListHandle(void const* argument) {
     ans = ans * 4 / 0x10000 * 512;
 
     // Trigger B
-    if (SYS_CFG.S1 <= ans && SYS_CFG.Sh >= ans && !Trigger_Freeze_TIME.TB) {
-      Trigger_Freeze_TIME.TB = SYS_CFG.TBfreeze;
-      printf(">>>System put Trigger B\n");
-      osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERB, 10);
-      continue;
-    }
 
-    // Trigger C
-    else if (SYS_CFG.Cl <= ans && SYS_CFG.Ch >= ans && !Trigger_Freeze_TIME.TC) {
+    if (SYS_CFG.Cl <= ans && SYS_CFG.Ch >= ans && !Trigger_Freeze_TIME.TC) {
       Trigger_Freeze_TIME.TC = SYS_CFG.TCfreeze;
       printf(">>>System put Trigger C\n");
       osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERC, 10);
+      continue;
+    }
+    // Trigger C
+    else if (SYS_CFG.S1 <= ans && SYS_CFG.Sh >= ans &&
+             !Trigger_Freeze_TIME.TB) {
+      Trigger_Freeze_TIME.TB = SYS_CFG.TBfreeze;
+      printf(">>>System put Trigger B\n");
+      osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERB, 10);
       continue;
     }
 
