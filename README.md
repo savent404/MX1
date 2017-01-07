@@ -7,6 +7,7 @@ You needs
 
 >[STM32CUBE MX](http://www.stm32cube.com/)
 
+>[Visual Studio Code](https://code.visualstudio.com/)
 
 ## OS support
 >[FreeRTOS](http://www.freertos.org/)

@@ -32,6 +32,11 @@
    #osFIFO_SIZE          輸出數據的最小單位，即每一次DMA輸出的最小單位
    #osFIFO_NUM           由freeRTOS中[osMessageQId]@pWAVHandle 定義的大小決定
                          @pWAVHandle 隊列大小+2 = osFIFO_NUM
+
+   其他説明
+   通過printf方式輸出調試信息，工程中通過ITM swo脚輸出
+   若需要屏蔽所有調試信息，可嘗試
+   #define printf(x,...) ;
 */
 #include "AP_OS.h"
 #include "fatfs.h"
@@ -91,36 +96,37 @@ __inline __weak uint16_t convert_double(uint16_t src_1, uint16_t src_2) {
    @Note: using CRITICAL func to protect SDIO's opt would
           not to be interrupt.
  */
-#define NORMAL_READ_PLAY_FILE_1()                                         \
-  taskENTER_CRITICAL();                                                   \
-  fres = f_read(&file_1, &pcm1, sizeof(pcm1), &cnt_1);                    \
-  fres = f_read(&file_1, &data1, sizeof(data1), &cnt_1);                  \
-  taskEXIT_CRITICAL();                                                    \
-  while (1) {                                                             \
-    /* No enuough buffer, exit */                                         \
-    if (data1.size < osFIFO_SIZE) break;                                  \
-                                                                          \
-    if (fres != FR_OK) {                                                  \
-      printf("Something wrong with FATFS. code:%d\n", fres);              \
-      f_close(&file_1);                                                   \
-      break;                                                              \
-    }                                                                     \
-    /* Read buffer and waiting for put succese. */                        \
-    taskENTER_CRITICAL();                                                 \
-    fres = f_read(&file_1, audio_buf1[pos1], osFIFO_SIZE * 2, &cnt_1);    \
-    taskEXIT_CRITICAL();                                                  \
-    fpt_1 = audio_buf1[pos1];                                             \
-    for (i = 0; i < osFIFO_SIZE; i++) {                                   \
-      *fpt_1 = convert_single(*fpt_1);                                    \
-      fpt_1++;                                                            \
-    }                                                                     \
-    data1.size -= cnt_1;                                                  \
-    osstatus = osMessagePut(pWAVHandle, (uint32_t)audio_buf1[pos1], 0);   \
-    while (osstatus) {                                                    \
-      osstatus = osMessagePut(pWAVHandle, (uint32_t)audio_buf1[pos1], 0); \
-    }                                                                     \
-    pos1 += 1;                                                            \
-    pos1 %= osFIFO_NUM;                                                   \
+#define NORMAL_READ_PLAY_FILE_1()                                           \
+  taskENTER_CRITICAL();                                                     \
+  fres = f_read(&file_1, &pcm1, sizeof(pcm1), &cnt_1);                      \
+  fres = f_read(&file_1, &data1, sizeof(data1), &cnt_1);                    \
+  taskEXIT_CRITICAL();                                                      \
+  while (1) {                                                               \
+    /* No enuough buffer, exit */                                           \
+    if (data1.size < osFIFO_SIZE) break;                                    \
+                                                                            \
+    if (fres != FR_OK) {                                                    \
+      printf("FATFS:Something wrong with FATFS. code:%d\n", fres);          \
+      f_close(&file_1);                                                     \
+      break;                                                                \
+    }                                                                       \
+    /* Read buffer and waiting for put succese. */                          \
+    taskENTER_CRITICAL();                                                   \
+    fres = f_read(&file_1, audio_buf1[pos1], osFIFO_SIZE * sizeof(int16_t), \
+                  &cnt_1);                                                  \
+    taskEXIT_CRITICAL();                                                    \
+    fpt_1 = audio_buf1[pos1];                                               \
+    for (i = 0; i < osFIFO_SIZE; i++) {                                     \
+      *fpt_1 = convert_single(*fpt_1);                                      \
+      fpt_1++;                                                              \
+    }                                                                       \
+    data1.size -= cnt_1;                                                    \
+    osstatus = osMessagePut(pWAVHandle, (uint32_t)audio_buf1[pos1], 0);     \
+    while (osstatus) {                                                      \
+      osstatus = osMessagePut(pWAVHandle, (uint32_t)audio_buf1[pos1], 0);   \
+    }                                                                       \
+    pos1 += 1;                                                              \
+    pos1 %= osFIFO_NUM;                                                     \
   }
 /* A normal option to read two file then put to DACHandle
    If needs to play two PCM file, then use it.
@@ -134,33 +140,31 @@ __inline __weak uint16_t convert_double(uint16_t src_1, uint16_t src_2) {
                                                                              \
   /*Mix Player*/                                                             \
   while (1) {                                                                \
-    /*read File 2 first*/                                                    \
+    /* firstly read file 1:Trigger file*/                                    \
+    if (data1.size < osFIFO_SIZE) break;                                     \
+    if (fres != FR_OK) {                                                     \
+      printf("FATFS:Something wrong wit FATFS. code:%d\n", fres);            \
+      f_close(&file_1);                                                      \
+      break;                                                                 \
+    }                                                                        \
+    CRITICAL_FUNC(fres = f_read(&file_1, audio_buf1[pos1],                   \
+                                osFIFO_SIZE * sizeof(int16_t), &cnt_1));     \
+    if (fres != FR_OK) {                                                     \
+      printf("FATFS:Something wrong with FATFS. code:%d\n", fres);           \
+      f_close(&file_1);                                                      \
+      break;                                                                 \
+    }                                                                        \
+    /*Then read File 2:hum.wav */                                            \
     if (data2.size < osFIFO_SIZE) {                                          \
       f_lseek(&file_2, 0);                                                   \
       CRITICAL_FUNC(fres = f_read(&file_2, &pcm2, sizeof(pcm2), &cnt_2);     \
                     fres = f_read(&file_2, &data2, sizeof(data2), &cnt_2);); \
       pos2 = 0;                                                              \
     } /* if file is end, reopen it.*/                                        \
-    CRITICAL_FUNC(                                                           \
-        fres = f_read(&file_2, audio_buf2[pos2], osFIFO_SIZE * 2, &cnt_2));  \
-    data2.size -= cnt_2;                                                     \
+    CRITICAL_FUNC(fres = f_read(&file_2, audio_buf2[pos2],                   \
+                                osFIFO_SIZE * sizeof(int16_t), &cnt_2));     \
     if (fres != FR_OK) {                                                     \
-      printf("Something wrong with FATFS. code:%d\n", fres);                 \
-    }                                                                        \
-                                                                             \
-    /*then read file 1*/                                                     \
-    if (data1.size < osFIFO_SIZE) break;                                     \
-    if (fres != FR_OK) {                                                     \
-      printf("Something wrong wit FATFS. code:%d\n", fres);                  \
-      f_close(&file_1);                                                      \
-      break;                                                                 \
-    }                                                                        \
-    CRITICAL_FUNC(                                                           \
-        fres = f_read(&file_1, audio_buf1[pos1], osFIFO_SIZE * 2, &cnt_1));  \
-    if (fres != FR_OK) {                                                     \
-      printf("Something wrong with FATFS. code:%d\n", fres);                 \
-      f_close(&file_1);                                                      \
-      break;                                                                 \
+      printf("FATFS:Something wrong with FATFS. code:%d\n", fres);           \
     }                                                                        \
     fpt_1 = audio_buf1[pos1];                                                \
     fpt_2 = audio_buf2[pos2];                                                \
@@ -179,7 +183,6 @@ __inline __weak uint16_t convert_double(uint16_t src_1, uint16_t src_2) {
     pos2 += 1;                                                               \
     pos2 %= osFIFO_NUM;                                                      \
   }
-
 /*  Waiting for CMD form another Handle
     * Play single Wav file
     * Play double Wav file
@@ -209,7 +212,7 @@ void WAVHandle(void const* argument) {
         printf("@Get startup message\n");
         CRITICAL_FUNC(fres = f_open(&file_1, "0:/System/Boot.wav", FA_READ));
         if (fres != FR_OK) {
-          printf("Open file Error:%d\n", fres);
+          printf("FATFS:Open file:%s Error:%d\n", "0:/System/Boot.wav", fres);
           break;
         }
 
@@ -217,7 +220,7 @@ void WAVHandle(void const* argument) {
 
         CRITICAL_FUNC(fres = f_close(&file_1));
 
-        printf("a flie closed:%d\n", fres);
+        printf("FATFS:a flie:[%s] closed:%d\n", "0:/System/Boot.wav", fres);
       } break;
 
       // When System from ready into close
@@ -226,7 +229,8 @@ void WAVHandle(void const* argument) {
         CRITICAL_FUNC(fres =
                           f_open(&file_1, "0:/System/Poweroff.wav", FA_READ));
         if (fres != FR_OK) {
-          printf("Open file Error:%d\n", fres);
+          printf("FATFS:Open file:%s Error:%d\n", "0:/System/Poweroff.wav",
+                 fres);
           break;
         }
 
@@ -234,7 +238,7 @@ void WAVHandle(void const* argument) {
 
         CRITICAL_FUNC(fres = f_close(&file_1));
 
-        printf("a flie closed:%d\n", fres);
+        printf("FATFS:a flie:[%s] closed:%d\n", "0:/System/Poweroff.wav", fres);
       } break;
 
       // When System from Ready into running.
@@ -251,12 +255,11 @@ void WAVHandle(void const* argument) {
           printf("@Get form ready into running message\n");
           // read a random file in Bank?/In/?
           // @get string:: 0:/Bank#/In
-          sprintf(sbuf, "%d", sBANK + 1);
+          sprintf(sbuf, "%d/In", sBANK + 1);
           strcat(sdir, sbuf);
-          strcat(sdir, "/In");
           CRITICAL_FUNC(fres = f_opendir(&fdir, (const TCHAR*)sdir));
           if (fres != FR_OK) {
-            printf("Open DIR:%s error:%d\n", sdir, fres);
+            printf("FATFS:Open DIR:%s error:%d\n", sdir, fres);
             break;
           }
           CRITICAL_FUNC(while (file_cnt--) {
@@ -272,7 +275,7 @@ void WAVHandle(void const* argument) {
           file_cnt += 1;
           CRITICAL_FUNC(fres = f_opendir(&fdir, (const TCHAR*)sdir););
           if (fres != FR_OK) {
-            printf("Open DIR:%s error:%d\n", sdir, fres);
+            printf("FATFS:Open DIR:%s error:%d\n", sdir, fres);
             break;
           }
           CRITICAL_FUNC(while (file_cnt--) {
@@ -287,12 +290,12 @@ void WAVHandle(void const* argument) {
           printf("#Get Random file name:%s\n", sbuf);
           CRITICAL_FUNC(fres = f_open(&file_1, (const TCHAR*)sbuf, FA_READ));
           if (fres != FR_OK) {
-            printf("Open file Error:%d\n", fres);
+            printf("FATFS:Open file:%s Error:%d\n", sbuf, fres);
             break;
           }
           NORMAL_READ_PLAY_FILE_1();
           CRITICAL_FUNC(fres = f_close(&file_1));
-          printf("a flie closed:%d\n", fres);
+          printf("FATFS:a flie:[%s] closed:%d\n", sbuf, fres);
         }
 
         // Open hum.wav
@@ -300,7 +303,7 @@ void WAVHandle(void const* argument) {
           sprintf(sbuf, "0:/Bank%d/hum.wav", sBANK + 1);
           CRITICAL_FUNC(fres = f_open(&file_2, sbuf, FA_READ));
           if (fres != FR_OK) {
-            printf("Open file$0:/Bank%d/hum.wav Error:%d\n", sBANK + 1, fres);
+            printf("FATFS:Open file:%s Error:%d\n", sbuf, fres);
             break;
           }
           CRITICAL_FUNC(fres = f_read(&file_2, &pcm2, sizeof(pcm2), &cnt_2);
@@ -323,7 +326,7 @@ void WAVHandle(void const* argument) {
                   fres = f_read(&file_2, &data2, sizeof(data2), &cnt_2););
             }
             CRITICAL_FUNC(fres = f_read(&file_2, audio_buf2[pos2],
-                                        osFIFO_SIZE * 2, &cnt_2));
+                                        osFIFO_SIZE * sizeof(int16_t), &cnt_2));
             data2.size -= cnt_2;
             if (fres != FR_OK) {
               printf("Something wrong with FATFS. code:%d\n", fres);
@@ -351,7 +354,8 @@ void WAVHandle(void const* argument) {
               // close hum.wav
               CRITICAL_FUNC(fres = f_close(&file_2));
               if (fres != FR_OK) {
-                printf("a flie closed$:0:/Bank%d/hum.wav :%d", sBANK + 1, fres);
+                printf("FATFS:a file:[0:/Bank%d/hum.wav] closed:%d", sBANK + 1,
+                       fres);
               }
 
               // var init
@@ -366,7 +370,7 @@ void WAVHandle(void const* argument) {
               strcat(sdir, "/Out");
               CRITICAL_FUNC(fres = f_opendir(&fdir, (const TCHAR*)sdir));
               if (fres != FR_OK) {
-                printf("Open DIR:%s error:%d\n", sdir, fres);
+                printf("Open DIR:[%s] error:%d\n", sdir, fres);
                 break;
               }
               CRITICAL_FUNC(while (file_cnt--) {
@@ -384,7 +388,7 @@ void WAVHandle(void const* argument) {
               CRITICAL_FUNC(fres = f_opendir(&fdir, (const TCHAR*)sdir););
 
               if (fres != FR_OK) {
-                printf("Open DIR:%s error:%d\n", sdir, fres);
+                printf("Open DIR:[%s] error:%d\n", sdir, fres);
                 break;
               }
               CRITICAL_FUNC(while (file_cnt--) {
@@ -405,7 +409,7 @@ void WAVHandle(void const* argument) {
               }
               NORMAL_READ_PLAY_FILE_1();
               CRITICAL_FUNC(fres = f_close(&file_1));
-              printf("a flie closed:%d\n", fres);
+              printf("FATFS:a file:[%s] closed:%d\n", sbuf, fres);
               loop_flag = 0;
             } break;
 
@@ -416,7 +420,7 @@ void WAVHandle(void const* argument) {
                 sprintf(sdir, "0:/Bank%d/Trigger_B", sBANK + 1);
                 CRITICAL_FUNC(fres = f_opendir(&fdir, (const TCHAR*)sdir));
                 if (fres != FR_OK) {
-                  printf("Open DIR:%s error:%d\n", sdir, fres);
+                  printf("Open DIR:[%s] error:%d\n", sdir, fres);
                   break;
                 }
                 file_cnt = nTrigger_D;
@@ -433,7 +437,7 @@ void WAVHandle(void const* argument) {
                 file_cnt += 1;
                 CRITICAL_FUNC(fres = f_opendir(&fdir, (const TCHAR*)sdir););
                 if (fres != FR_OK) {
-                  printf("Open DIR:%s error:%d\n", sdir, fres);
+                  printf("Open DIR:[%s] error:%d\n", sdir, fres);
                   break;
                 }
                 CRITICAL_FUNC(while (file_cnt--) {
@@ -455,7 +459,7 @@ void WAVHandle(void const* argument) {
               }
               MIX_READ_PLAY_FILE_12();
               CRITICAL_FUNC(fres = f_close(&file_1));
-              printf("a flie closed:%d\n", fres);
+              printf("FATFS:a flie:[%s] closed:%d\n", sbuf, fres);
             } break;
 
             case SIG_AUDIO_TRIGGERC: {
@@ -465,7 +469,7 @@ void WAVHandle(void const* argument) {
                 sprintf(sdir, "0:/Bank%d/Trigger_C", sBANK + 1);
                 CRITICAL_FUNC(fres = f_opendir(&fdir, (const TCHAR*)sdir));
                 if (fres != FR_OK) {
-                  printf("Open DIR:%s error:%d\n", sdir, fres);
+                  printf("Open DIR:[%s] error:%d\n", sdir, fres);
                   break;
                 }
                 file_cnt = nTrigger_D;
@@ -482,7 +486,7 @@ void WAVHandle(void const* argument) {
                 file_cnt += 1;
                 CRITICAL_FUNC(fres = f_opendir(&fdir, (const TCHAR*)sdir););
                 if (fres != FR_OK) {
-                  printf("Open DIR:%s error:%d\n", sdir, fres);
+                  printf("Open DIR:[%s] error:%d\n", sdir, fres);
                   break;
                 }
                 CRITICAL_FUNC(while (file_cnt--) {
@@ -504,7 +508,7 @@ void WAVHandle(void const* argument) {
               }
               MIX_READ_PLAY_FILE_12();
               CRITICAL_FUNC(fres = f_close(&file_1));
-              printf("a flie closed:%d\n", fres);
+              printf("FATFS:a file:[%s] closed:%d\n", sbuf, fres);
             } break;
 
             case SIG_AUDIO_TRIGGERD: {
@@ -514,7 +518,7 @@ void WAVHandle(void const* argument) {
                 sprintf(sdir, "0:/Bank%d/Trigger_D", sBANK + 1);
                 CRITICAL_FUNC(fres = f_opendir(&fdir, (const TCHAR*)sdir));
                 if (fres != FR_OK) {
-                  printf("Open DIR:%s error:%d\n", sdir, fres);
+                  printf("Open DIR:[%s] error:%d\n", sdir, fres);
                   break;
                 }
                 file_cnt = nTrigger_D;
@@ -531,7 +535,7 @@ void WAVHandle(void const* argument) {
                 file_cnt += 1;
                 CRITICAL_FUNC(fres = f_opendir(&fdir, (const TCHAR*)sdir););
                 if (fres != FR_OK) {
-                  printf("Open DIR:%s error:%d\n", sdir, fres);
+                  printf("Open DIR:[%s] error:%d\n", sdir, fres);
                   break;
                 }
                 CRITICAL_FUNC(while (file_cnt--) {
@@ -564,7 +568,7 @@ void WAVHandle(void const* argument) {
                 sprintf(sdir, "0:/Bank%d/Trigger_E", sBANK + 1);
                 CRITICAL_FUNC(fres = f_opendir(&fdir, sdir));
                 if (fres != FR_OK) {
-                  printf("Open DIR:%s error:%d\n", sdir, fres);
+                  printf("Open DIR:[%s] error:%d\n", sdir, fres);
                   break;
                 }
                 file_cnt = nTrigger_E;
@@ -581,7 +585,7 @@ void WAVHandle(void const* argument) {
                 file_cnt += 1;
                 CRITICAL_FUNC(fres = f_opendir(&fdir, sdir));
                 if (fres != FR_OK) {
-                  printf("Open DIR:%s error:%d\n", sdir, fres);
+                  printf("Open DIR:[%s] error:%d\n", sdir, fres);
                   break;
                 }
                 CRITICAL_FUNC(while (file_cnt--) {
@@ -598,7 +602,7 @@ void WAVHandle(void const* argument) {
               // Loop's Init
               CRITICAL_FUNC(fres = f_open(&file_1, sbuf, FA_READ));
               if (fres != FR_OK) {
-                printf("Open file Error:%d\n", fres);
+                printf("FATFS:Open file:%s Error:%d\n", sbuf, fres);
                 break;
               }
               CRITICAL_FUNC(fres = f_read(&file_1, &pcm1, sizeof(pcm1), &cnt_1);
@@ -609,6 +613,7 @@ void WAVHandle(void const* argument) {
                 evt = osMessageGet(SIG_PLAYWAVHandle, 1);
                 if (evt.status == osEventMessage &&
                     evt.value.v == SIG_AUDIO_TRIGGEREOFF) {
+                  printf("@Get Trigger E off\n");
                   break;
                 }
                 if (data1.size < osFIFO_SIZE) {
@@ -619,7 +624,8 @@ void WAVHandle(void const* argument) {
                 }
 
                 CRITICAL_FUNC(fres = f_read(&file_1, audio_buf1[pos1],
-                                            osFIFO_SIZE * 2, &cnt_1));
+                                            osFIFO_SIZE * sizeof(int16_t),
+                                            &cnt_1));
                 fpt_1 = audio_buf1[pos1];
                 for (i = 0; i < osFIFO_SIZE; i++) {
                   *fpt_1 = convert_single(*fpt_1);
@@ -636,7 +642,7 @@ void WAVHandle(void const* argument) {
                 pos1 %= osFIFO_NUM;
               }
               CRITICAL_FUNC(fres = f_close(&file_1));
-              printf("a file closed:%d", fres);
+              printf("FATFS:a file:[%s] closed:%d", sbuf, fres);
             } break;
 
             /*case SIG_AUDIO_TRIGGEREOFF: {
@@ -659,13 +665,13 @@ void WAVHandle(void const* argument) {
         strcat(path, "/Bankswitch.wav");
         CRITICAL_FUNC(fres = f_open(&file_1, path, FA_READ));
         if (fres != FR_OK) {
-          printf("Open file$:%s Error:%d\n", path, fres);
+          printf("FATFS:Open file:%s Error:%d\n", path, fres);
           break;
         }
         NORMAL_READ_PLAY_FILE_1();
 
         CRITICAL_FUNC(fres = f_close(&file_1));
-        printf("a file closed:%d\n", fres);
+        printf("FATFS:a file:[%s] closed:%d\n", path, fres);
       } break;
       // case ...
       default:
