@@ -4,7 +4,7 @@
   * Description        : This file contains the common defines of the application
   ******************************************************************************
   *
-  * COPYRIGHT(c) 2016 STMicroelectronics
+  * COPYRIGHT(c) 2017 STMicroelectronics
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -73,6 +73,8 @@
 #define LED3_GPIO_Port GPIOA
 #define LED4_Pin GPIO_PIN_11
 #define LED4_GPIO_Port GPIOA
+#define Audio_Soft_EN_Pin GPIO_PIN_15
+#define Audio_Soft_EN_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
