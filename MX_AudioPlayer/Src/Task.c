@@ -17,22 +17,18 @@ extern osThreadId GPIOHandle;
 extern osThreadId x3DList_CTLHandle;
 extern osMessageQId SIG_GPIOHandle;
 extern osMessageQId SIG_PLAYWAVHandle;
+extern osTimerId TriggerFreezTimerHandle;
 
 const uint32_t SIG_POWERKEY_DOWN = 0x0001;
 const uint32_t SIG_POWERKEY_UP = 0x0002;
 const uint32_t SIG_USERKEY_DOWN = 0x0004;
 const uint32_t SIG_USERKEY_UP = 0x0008;
 
-#define nBank 2  //设定TF卡根目录下Bank文件夹的最大数量
-                 //若此值大于Color profiles中的bank计数或者实际文件夹数，则只计三者中的最小值
-                 //若Color
-                 //profiles中的bank计数或者实际文件夹数大于此设定值，则工作时将多余部分舍弃，只在此值限定范围内循环
-#define nIn 2    //设定Bank#文件夹下In文件夹内允许最大文件数量
-#define nOut 2  //设定Bank#文件夹下Out文件夹内允许最大文件数量
-#define nTrigger_B 16  //设定Bank#文件夹下Trigger_B文件夹内允许最大文件数量
-#define nTrigger_C 16  //设定Bank#文件夹下Trigger_C文件夹内允许最大文件数量
-#define nTrigger_D 8  //设定Bank#文件夹下Trigger_D文件夹内允许最大文件数量
-#define nTrigger_E 2  //设定Bank#文件夹下Trigger_E文件夹内允许最大文件数量
+volatile static struct TFT{
+  volatile int32_t TB;
+  volatile int32_t TC;
+  volatile int32_t TD;
+} Trigger_Freeze_TIME;
 
 /* System status in now */
 __IO enum { SYS_close, SYS_ready, SYS_running } System_Status = SYS_close;
@@ -46,6 +42,10 @@ void Handle_System(void const* argument) {
   extern struct config SYS_CFG;
   printf(">>>System in ready mode\n");
   System_Status = SYS_ready;
+  Trigger_Freeze_TIME.TB = 0, Trigger_Freeze_TIME.TC = 0,
+  Trigger_Freeze_TIME.TD = 0;
+  osTimerStart(TriggerFreezTimerHandle, 10);
+
   // System into READY
   while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_STARTUP, 0)) {
     ;
@@ -140,7 +140,7 @@ void Handle_System(void const* argument) {
     // end of System = ready, event == User Key
 
     if (System_Status == SYS_running && evt.status == osEventMessage &&
-    evt.value.signals & SIG_USERKEY_DOWN) {
+        evt.value.signals & SIG_USERKEY_DOWN) {
       cnt = 0;
       for (;;) {
         evt = osMessageGet(SIG_GPIOHandle, 1);
@@ -156,23 +156,23 @@ void Handle_System(void const* argument) {
         }
       }
       if (cnt >= SYS_CFG.TEtrigger) {
-        for(;;) {
+        for (;;) {
           evt = osMessageGet(SIG_GPIOHandle, 1);
-          if (evt.status == osEventMessage && evt.value.signals & SIG_USERKEY_UP)
-          break;
+          if (evt.status == osEventMessage &&
+              evt.value.signals & SIG_USERKEY_UP)
+            break;
         }
         printf(">>>System put Trigger E off\n");
         while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGEREOFF, 0)) {
           ;
         }
-      }
-      else {
-        printf(">>>System put Trigger D\n");
-        while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERD, 0)) {
-          ;
+      } else if(!Trigger_Freeze_TIME.TD) {
+          Trigger_Freeze_TIME.TD = SYS_CFG.TDfreeze;
+          printf(">>>System put Trigger D\n");
+          while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERD, 0)) {
+            ;
+          }
         }
-      }
-      
     }
     // end of System = running , event == User Key
   }
@@ -236,7 +236,7 @@ void x3DListHandle(void const* argument) {
   taskEXIT_CRITICAL();
   for (;;) {
     if (System_Status != SYS_running) {
-      osDelay(5);
+      osDelay(50);
       continue;
     }
 
@@ -251,19 +251,55 @@ void x3DListHandle(void const* argument) {
     ans = ans * 4 / 0x10000 * 512;
 
     // Trigger B
-    if (SYS_CFG.S1 <= ans && SYS_CFG.Sh >= ans) {
+    if (SYS_CFG.S1 <= ans && SYS_CFG.Sh >= ans && !Trigger_Freeze_TIME.TB) {
+      Trigger_Freeze_TIME.TB = SYS_CFG.TBfreeze;
+      printf(">>>System put Trigger B\n");
       osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERB, 10);
-      osDelay(SYS_CFG.TBfreeze);
       continue;
     }
 
     // Trigger C
-    else if (SYS_CFG.Cl <= ans && SYS_CFG.Ch >= ans) {
+    else if (SYS_CFG.Cl <= ans && SYS_CFG.Ch >= ans && !Trigger_Freeze_TIME.TC) {
+      Trigger_Freeze_TIME.TC = SYS_CFG.TCfreeze;
+      printf(">>>System put Trigger C\n");
       osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERC, 10);
-      osDelay(SYS_CFG.TCfreeze);
       continue;
     }
 
     osDelay(10);
+  }
+}
+
+void TriggerFreez(void const* argument) {
+  if (Trigger_Freeze_TIME.TB > 10)
+    Trigger_Freeze_TIME.TB -= 10;
+  else if (Trigger_Freeze_TIME.TB > 0)
+
+  {
+    printf("Trigger B reset\n");
+    Trigger_Freeze_TIME.TB = 0;
+  } else if (Trigger_Freeze_TIME.TB < 0) {
+    printf("Trigger B reset\n");
+    Trigger_Freeze_TIME.TB = 0;
+  }
+
+  if (Trigger_Freeze_TIME.TC > 10)
+    Trigger_Freeze_TIME.TC -= 10;
+  else if (Trigger_Freeze_TIME.TC > 0) {
+    printf("Trigger C reset\n");
+    Trigger_Freeze_TIME.TC = 0;
+  } else if (Trigger_Freeze_TIME.TC < 0) {
+    printf("Trigger C reset\n");
+    Trigger_Freeze_TIME.TC = 0;
+  }
+
+  if (Trigger_Freeze_TIME.TD > 10)
+    Trigger_Freeze_TIME.TD -= 10;
+  else if (Trigger_Freeze_TIME.TD > 0) {
+    printf("Trigger D reset\n");
+    Trigger_Freeze_TIME.TD = 0;
+  } else if (Trigger_Freeze_TIME.TD < 0) {
+    printf("Trigger D reset\n");
+    Trigger_Freeze_TIME.TD = 0;
   }
 }

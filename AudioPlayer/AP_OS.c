@@ -80,7 +80,7 @@ __inline __weak uint16_t convert_double(uint16_t src_1, uint16_t src_2) {
   src_2 += 0x7FFF;
   src_1 >>= 4;
   src_2 >>= 4;
-  return (src_1 + src_2) / 2;
+  return (src_1/2 + src_2);
 }
 
 /***

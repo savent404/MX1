@@ -49,6 +49,7 @@ osThreadId x3DList_CTLHandle;
 osMessageQId pWAVHandle;
 osMessageQId SIG_GPIOHandle;
 osMessageQId SIG_PLAYWAVHandle;
+osTimerId TriggerFreezTimerHandle;
 osSemaphoreId DMA_FLAGHandle;
 
 /* USER CODE BEGIN Variables */
@@ -61,6 +62,7 @@ void Handle_GPIO(void const * argument);
 void WAVHandle(void const * argument);
 void DACHandle(void const * argument);
 void x3DListHandle(void const * argument);
+void TriggerFreez(void const * argument);
 
 extern void MX_FATFS_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -101,6 +103,11 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
   /* USER CODE END RTOS_SEMAPHORES */
+
+  /* Create the timer(s) */
+  /* definition and creation of TriggerFreezTimer */
+  osTimerDef(TriggerFreezTimer, TriggerFreez);
+  TriggerFreezTimerHandle = osTimerCreate(osTimer(TriggerFreezTimer), osTimerPeriodic, NULL);
 
   /* USER CODE BEGIN RTOS_TIMERS */
   /* start timers, add new ones, ... */
@@ -210,6 +217,14 @@ __weak void x3DListHandle(void const * argument)
     osDelay(1);
   }
   /* USER CODE END x3DListHandle */
+}
+
+/* TriggerFreez function */
+__weak void TriggerFreez(void const * argument)
+{
+  /* USER CODE BEGIN TriggerFreez */
+  
+  /* USER CODE END TriggerFreez */
 }
 
 /* USER CODE BEGIN Application */
