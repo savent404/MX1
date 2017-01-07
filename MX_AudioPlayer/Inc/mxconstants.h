@@ -73,6 +73,8 @@
 #define LED3_GPIO_Port GPIOA
 #define LED4_Pin GPIO_PIN_11
 #define LED4_GPIO_Port GPIOA
+#define Audio_Soft_EN_Pin GPIO_PIN_15
+#define Audio_Soft_EN_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
