@@ -105,7 +105,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
   MX_FATFS_Init();
   res = f_mount(&fs, (const TCHAR*)"0", 1);
-  TX_CFG(&SYS_CFG);
+  TX_CFG(&SYS_CFG,RGB_PROFILE);
   HAL_Delay(SYS_CFG.Tpon);
   HAL_GPIO_WritePin(Power_EN_GPIO_Port, Power_EN_Pin, GPIO_PIN_SET);
 	while (HAL_GPIO_ReadPin(Power_KEY_GPIO_Port, Power_KEY_Pin)){

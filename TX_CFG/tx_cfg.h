@@ -4,7 +4,7 @@
 #include <string.h>
 
 #define DEFAULT_TEXT_PATH "0:/SETTING.txt"
-#define VAR_NUM 32
+#define VAR_NUM 64
 #define SBUF_SIZE 200
 #define NAME_SIZE 20
 #define VAL_SIZE 20
@@ -20,6 +20,7 @@
 #else
 #include "stm32f1xx_hal.h"
 #include "ff.h"
+#include "led.h"
 #endif
 extern const char name_string[][10];
 struct config {
@@ -79,7 +80,7 @@ struct config {
    .....
    */
 };
-void TX_CFG(struct config *cfg);
+void TX_CFG(struct config *cfg, RGBL rgbl[][2]);
 /**
   * @Brief   Get ans:val string
   * @Para line src-string
