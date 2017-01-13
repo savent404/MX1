@@ -46,9 +46,11 @@ osThreadId GPIOHandle;
 osThreadId WAV_CTLHandle;
 osThreadId DAC_CTLHandle;
 osThreadId x3DList_CTLHandle;
+osThreadId LED_CTLHandle;
 osMessageQId pWAVHandle;
 osMessageQId SIG_GPIOHandle;
 osMessageQId SIG_PLAYWAVHandle;
+osMessageQId SIG_LEDHandle;
 osTimerId TriggerFreezTimerHandle;
 osSemaphoreId DMA_FLAGHandle;
 
@@ -62,6 +64,7 @@ void Handle_GPIO(void const * argument);
 void WAVHandle(void const * argument);
 void DACHandle(void const * argument);
 void x3DListHandle(void const * argument);
+void LEDHandle(void const * argument);
 void TriggerFreez(void const * argument);
 
 extern void MX_FATFS_Init(void);
@@ -134,6 +137,10 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(x3DList_CTL, x3DListHandle, osPriorityNormal, 0, 128);
   x3DList_CTLHandle = osThreadCreate(osThread(x3DList_CTL), NULL);
 
+  /* definition and creation of LED_CTL */
+  osThreadDef(LED_CTL, LEDHandle, osPriorityLow, 0, 128);
+  LED_CTLHandle = osThreadCreate(osThread(LED_CTL), NULL);
+
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
@@ -150,6 +157,10 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of SIG_PLAYWAV */
   osMessageQDef(SIG_PLAYWAV, 4, uint8_t);
   SIG_PLAYWAVHandle = osMessageCreate(osMessageQ(SIG_PLAYWAV), NULL);
+
+  /* definition and creation of SIG_LED */
+  osMessageQDef(SIG_LED, 4, uint32_t);
+  SIG_LEDHandle = osMessageCreate(osMessageQ(SIG_LED), NULL);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
@@ -217,6 +228,18 @@ __weak void x3DListHandle(void const * argument)
     osDelay(1);
   }
   /* USER CODE END x3DListHandle */
+}
+
+/* LEDHandle function */
+__weak void LEDHandle(void const * argument)
+{
+  /* USER CODE BEGIN LEDHandle */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END LEDHandle */
 }
 
 /* TriggerFreez function */

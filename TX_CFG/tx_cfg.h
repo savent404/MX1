@@ -79,7 +79,6 @@ struct config {
    .....
    */
 };
-
 void TX_CFG(struct config *cfg);
 /**
   * @Brief   Get ans:val string

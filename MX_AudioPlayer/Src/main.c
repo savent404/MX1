@@ -72,6 +72,7 @@ void MX_FREERTOS_Init(void);
 FATFS fs;
 FRESULT res;
 struct config SYS_CFG;
+RGBL RGB_PROFILE[16][2];
 uint32_t i;
 
 /* USER CODE END 0 */
@@ -99,6 +100,7 @@ int main(void)
   MX_SDIO_SD_Init();
   MX_SPI2_Init();
   MX_TIM2_Init();
+  MX_TIM1_Init();
 
   /* USER CODE BEGIN 2 */
   MX_FATFS_Init();
