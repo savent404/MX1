@@ -44,7 +44,7 @@
 #include "USR_CFG.h"
 #include "stdlib.h"
 #include "DEBUG_CFG.h"
-
+#include <stdint.h>
 /* When System from Close into Ready */
 const uint8_t SIG_AUDIO_STARTUP = 0x10;
 /* When System from Ready into Close */
@@ -78,12 +78,28 @@ static FILINFO finfo;
 __inline __weak uint16_t convert_single(uint16_t src) {
   return ((src + 0x7FFF) >> 4);
 }
-__inline __weak uint16_t convert_double(uint16_t src_1, uint16_t src_2) {
-  src_1 += 0x7FFF;
+__inline __weak uint16_t convert_double(int16_t src_1, int16_t src_2) {
+/*  src_1 += 0x7FFF;
   src_2 += 0x7FFF;
   src_1 >>= 4;
   src_2 >>= 4;
-  return (src_1 / 2 + src_2);
+  return (src_1 / 2 + src_2);*/
+  static float f = 1;
+  int32_t buf = src_1 + src_2;
+  if (buf > INT16_MAX/2) {
+    f = (float)INT16_MAX/2/(float)buf;
+    buf = INT16_MAX/2;
+  }
+  buf *= f;
+  if (buf < INT16_MIN/2) {
+    f = (float)INT16_MIN/2/(float)buf;
+    buf = INT16_MIN/2;
+  }
+  if (f < 1) {
+    f += ((float)1 - f)/(float)32;
+  }
+  return (buf >> 4) + 0x1000/2;
+
 }
 
 /***
@@ -740,7 +756,5 @@ void DACHandle(void const* argument) {
   }
 }
 void HAL_DAC_ConvCpltCallbackCh1(DAC_HandleTypeDef* hdac) {
-  static uint32_t CNT;
   osSemaphoreRelease(DMA_FLAGHandle);
-  // printf("DMA call back hit:%d\n", ++CNT);
 }
