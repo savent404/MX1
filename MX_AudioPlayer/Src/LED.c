@@ -32,8 +32,11 @@ const uint8_t SIG_LED_TRIGGERE = 0x40;
 /* When System in Running, Trigger E off */
 const uint8_t SIG_LED_TRIGGEREOFF = 0x50;
 
+const uint8_t SIG_LED_SWITCHBANK = 0x60;
+
 void LEDHandle(void const *argument) {
   osEvent evt;
+  static uint8_t shift_bank = 0;
   enum { IN_TRIGGER_E, OUT_TRIGGER_E } trigger_e = OUT_TRIGGER_E;
   uint8_t flag = 1;
   printf_LED("LED Handle init start\n");
@@ -49,23 +52,23 @@ void LEDHandle(void const *argument) {
       evt = osMessageGet(SIG_LEDHandle, SYS_CFG.Ecycle / 2);
     }
     if (trigger_e == IN_TRIGGER_E) {
-      LED_COLOR_SET(RGB_PROFILE[sBANK][flag], 0xFF, 1);
-			printf_LED("Trigger E Half Cycle hit\n");
+      LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][flag], 0xFF, 1);
+      printf_LED("Trigger E Half Cycle hit\n");
       if (flag)
         flag = 0;
       else
         flag = 1;
     }
-		if (evt.status != osEventMessage) continue;
-		printf_LED("LED message GET\n");
-		
+    if (evt.status != osEventMessage) continue;
+    printf_LED("LED message GET\n");
+
     switch (evt.value.v) {
       case SIG_LED_INTORUN: {
         uint16_t cnt;
         printf_LED("&LED\tGet mode running message\n");
         for (cnt = 1; cnt <= SYS_CFG.TLon / 10; cnt++) {
-          LED_COLOR_SET(RGB_PROFILE[sBANK][0], 0xFF * cnt / (SYS_CFG.TLon / 10),
-                        1);
+          LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][0],
+                        0xFF * cnt / (SYS_CFG.TLon / 10), 1);
           osDelay(10);
         }
         break;
@@ -91,35 +94,63 @@ void LEDHandle(void const *argument) {
         printf_LED("&LED\tGet trigger C message\n");
         cycle = SYS_CFG.Ccount - 1;
         while (cycle--) {
-          LED_COLOR_SET(RGB_PROFILE[sBANK][1], 0xFF, 1);
+          LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][1], 0xFF, 1);
           osDelay(SYS_CFG.TCflip);
-          LED_COLOR_SET(RGB_PROFILE[sBANK][0], 0xFF, 1);
+          LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][0], 0xFF, 1);
           osDelay(SYS_CFG.TCflip);
         }
-        LED_COLOR_SET(RGB_PROFILE[sBANK][1], 0xFF, 1);
+        LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][1], 0xFF, 1);
         osDelay(SYS_CFG.TCflip);
-        LED_COLOR_SET(RGB_PROFILE[sBANK][0], 0xFF, 1);
+        LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][0], 0xFF, 1);
         break;
       }
       case SIG_LED_TRIGGERD: {
         printf_LED("&LED\tGet trigger D message\n");
-        LED_COLOR_SET(RGB_PROFILE[sBANK][1], 0xFF, 1);
+        LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][1], 0xFF, 1);
         osDelay(SYS_CFG.TDflip);
-        LED_COLOR_SET(RGB_PROFILE[sBANK][0], 0xFF, 1);
+        LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][0], 0xFF, 1);
         break;
       }
       case SIG_LED_TRIGGERE: {
         printf_LED("&LED\tGet trigger E on message\n");
-				LED_COLOR_SET(RGB_PROFILE[sBANK][1], 0xFF, 1);
+        LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][1], 0xFF, 1);
         trigger_e = IN_TRIGGER_E;
         flag = 0;
         break;
       }
       case SIG_LED_TRIGGEREOFF: {
         printf_LED("&LED\tGet trigger E off message\n");
-				LED_COLOR_SET(RGB_PROFILE[sBANK][0], 0xFF, 1);
+        LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][0], 0xFF, 1);
         trigger_e = OUT_TRIGGER_E;
         break;
+      }
+      case SIG_LED_SWITCHBANK: {
+        printf_LED("&LED\tGet switch bank\n");
+        shift_bank += 1;
+        shift_bank %= nBank;
+        // Power off LED first
+        {
+          uint16_t cnt;
+          printf_LED("&LED\tGet mode ready message\n");
+          cnt = SYS_CFG.TLoff / 10;
+          while (cnt--) {
+            LED_COLOR_SET(RGB_PROFILE[0][0], 0xFF * cnt / (SYS_CFG.TLoff / 10),
+                          0);
+            osDelay(10);
+          }
+          {
+            uint16_t cnt;
+            printf_LED("&LED\tGet mode running message\n");
+            for (cnt = 1; cnt <= SYS_CFG.TLon / 10; cnt++) {
+              LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][0],
+                            0xFF * cnt / (SYS_CFG.TLon / 10), 1);
+              osDelay(10);
+            }
+            break;
+          }
+          break;
+        }
+        // Power up LED then
       }
       default: {
         printf_LED("&LED\tGet undefine SIG of LED:%d\n", evt.value.v);

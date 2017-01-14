@@ -65,6 +65,8 @@ const uint8_t SIG_AUDIO_TRIGGERD = 0x04;
 const uint8_t SIG_AUDIO_TRIGGERE = 0x08;
 /* When System in Running, Trigger E off */
 const uint8_t SIG_AUDIO_TRIGGEREOFF = 0x09;
+/* When LED change bank */
+const uint8_t SIG_AUDIO_COLORSWITCH = 0x0A;
 
 // wave pcm buffer, tow channels
 static uint16_t audio_buf1[osFIFO_NUM][osFIFO_SIZE],
@@ -81,7 +83,7 @@ __inline __weak uint16_t convert_double(uint16_t src_1, uint16_t src_2) {
   src_2 += 0x7FFF;
   src_1 >>= 4;
   src_2 >>= 4;
-  return (src_1/2 + src_2);
+  return (src_1 / 2 + src_2);
 }
 
 /***
@@ -107,7 +109,7 @@ __inline __weak uint16_t convert_double(uint16_t src_1, uint16_t src_2) {
     if (data1.size < osFIFO_SIZE) break;                                    \
                                                                             \
     if (fres != FR_OK) {                                                    \
-      printf_FATFS("FATFS:Something wrong with FATFS. code:%d\n", fres);          \
+      printf_FATFS("FATFS:Something wrong with FATFS. code:%d\n", fres);    \
       f_close(&file_1);                                                     \
       break;                                                                \
     }                                                                       \
@@ -144,14 +146,14 @@ __inline __weak uint16_t convert_double(uint16_t src_1, uint16_t src_2) {
     /* firstly read file 1:Trigger file*/                                    \
     if (data1.size < osFIFO_SIZE) break;                                     \
     if (fres != FR_OK) {                                                     \
-      printf_FATFS("FATFS:Something wrong wit FATFS. code:%d\n", fres);            \
+      printf_FATFS("FATFS:Something wrong wit FATFS. code:%d\n", fres);      \
       f_close(&file_1);                                                      \
       break;                                                                 \
     }                                                                        \
     CRITICAL_FUNC(fres = f_read(&file_1, audio_buf1[pos1],                   \
                                 osFIFO_SIZE * sizeof(int16_t), &cnt_1));     \
     if (fres != FR_OK) {                                                     \
-      printf_FATFS("FATFS:Something wrong with FATFS. code:%d\n", fres);           \
+      printf_FATFS("FATFS:Something wrong with FATFS. code:%d\n", fres);     \
       f_close(&file_1);                                                      \
       break;                                                                 \
     }                                                                        \
@@ -165,7 +167,7 @@ __inline __weak uint16_t convert_double(uint16_t src_1, uint16_t src_2) {
     CRITICAL_FUNC(fres = f_read(&file_2, audio_buf2[pos2],                   \
                                 osFIFO_SIZE * sizeof(int16_t), &cnt_2));     \
     if (fres != FR_OK) {                                                     \
-      printf_FATFS("FATFS:Something wrong with FATFS. code:%d\n", fres);           \
+      printf_FATFS("FATFS:Something wrong with FATFS. code:%d\n", fres);     \
     }                                                                        \
     fpt_1 = audio_buf1[pos1];                                                \
     fpt_2 = audio_buf2[pos2];                                                \
@@ -213,7 +215,8 @@ void WAVHandle(void const* argument) {
         printf_RANDOMFILE("#Get startup message\n");
         CRITICAL_FUNC(fres = f_open(&file_1, "0:/System/Boot.wav", FA_READ));
         if (fres != FR_OK) {
-          printf_FATFS("FATFS:Open file:%s Error:%d\n", "0:/System/Boot.wav", fres);
+          printf_FATFS("FATFS:Open file:%s Error:%d\n", "0:/System/Boot.wav",
+                       fres);
           break;
         }
 
@@ -221,7 +224,8 @@ void WAVHandle(void const* argument) {
 
         CRITICAL_FUNC(fres = f_close(&file_1));
 
-        printf_FATFS("FATFS:a flie:[%s] closed:%d\n", "0:/System/Boot.wav", fres);
+        printf_FATFS("FATFS:a flie:[%s] closed:%d\n", "0:/System/Boot.wav",
+                     fres);
       } break;
 
       // When System from ready into close
@@ -230,8 +234,8 @@ void WAVHandle(void const* argument) {
         CRITICAL_FUNC(fres =
                           f_open(&file_1, "0:/System/Poweroff.wav", FA_READ));
         if (fres != FR_OK) {
-          printf_FATFS("FATFS:Open file:%s Error:%d\n", "0:/System/Poweroff.wav",
-                 fres);
+          printf_FATFS("FATFS:Open file:%s Error:%d\n",
+                       "0:/System/Poweroff.wav", fres);
           break;
         }
 
@@ -239,7 +243,8 @@ void WAVHandle(void const* argument) {
 
         CRITICAL_FUNC(fres = f_close(&file_1));
 
-        printf_FATFS("FATFS:a flie:[%s] closed:%d\n", "0:/System/Poweroff.wav", fres);
+        printf_FATFS("FATFS:a flie:[%s] closed:%d\n", "0:/System/Poweroff.wav",
+                     fres);
       } break;
 
       // When System from Ready into running.
@@ -355,8 +360,8 @@ void WAVHandle(void const* argument) {
               // close hum.wav
               CRITICAL_FUNC(fres = f_close(&file_2));
               if (fres != FR_OK) {
-                printf_FATFS("FATFS:a file:[0:/Bank%d/hum.wav] closed:%d", sBANK + 1,
-                       fres);
+                printf_FATFS("FATFS:a file:[0:/Bank%d/hum.wav] closed:%d",
+                             sBANK + 1, fres);
               }
 
               // var init
@@ -649,7 +654,20 @@ void WAVHandle(void const* argument) {
             /*case SIG_AUDIO_TRIGGEREOFF: {
               printf_RANDOMFILE("#Get Trigger E off\n");
             } break;*/
-
+            case SIG_AUDIO_COLORSWITCH: {
+              printf_RANDOMFILE("#Get LED switch Color message\n");
+              CRITICAL_FUNC(
+                  fres =
+                      f_open(&file_1, (const TCHAR*)"system/colorswitch.wav", FA_READ));
+              if (fres != FR_OK) {
+                printf_FATFS("Open file Error:%d\n", fres);
+                break;
+              }
+              MIX_READ_PLAY_FILE_12();
+              CRITICAL_FUNC(fres = f_close(&file_1));
+              printf_FATFS("FATFS:a file:[%s] closed:%d\n",
+                           "system/colorswitch.wav", fres);
+            } break;
             // case ...
             default:
               break;

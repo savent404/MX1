@@ -38,6 +38,8 @@ extern const uint8_t SIG_AUDIO_TRIGGERD;
 extern const uint8_t SIG_AUDIO_TRIGGERE;
 /* When System in Running, Trigger E off */
 extern const uint8_t SIG_AUDIO_TRIGGEREOFF;
+/* When LED change bank */
+extern const uint8_t SIG_AUDIO_COLORSWITCH;
 
 extern osThreadId    WAV_CTLHandle;
 extern osThreadId    DAC_CTLHandle;

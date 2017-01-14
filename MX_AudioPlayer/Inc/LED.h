@@ -37,6 +37,8 @@ extern const uint8_t SIG_LED_TRIGGERE;
 /* When System in Running, Trigger E off */
 extern const uint8_t SIG_LED_TRIGGEREOFF;
 
+extern const uint8_t SIG_LED_SWITCHBANK;
+
 typedef struct {
   int R;
   int G;
