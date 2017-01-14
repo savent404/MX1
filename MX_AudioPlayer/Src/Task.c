@@ -38,21 +38,21 @@ __IO enum { SYS_close, SYS_ready, SYS_running } System_Status = SYS_close;
 
 /* Bank now */
 __IO uint8_t sBANK = 0;
+uint8_t MUTE_FLAG = 0;
 
 void Handle_System(void const* argument) {
   uint32_t cnt;
   osEvent evt;
   extern struct config SYS_CFG;
   printf_SYSTEM(">>>System in ready mode\n");
+  if (HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin) == GPIO_PIN_RESET) MUTE_FLAG = 1;
   System_Status = SYS_ready;
   Trigger_Freeze_TIME.TB = 0, Trigger_Freeze_TIME.TC = 0,
   Trigger_Freeze_TIME.TD = 0;
   osTimerStart(TriggerFreezTimerHandle, 10);
 
   // System into READY
-  while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_STARTUP, 0)) {
-    ;
-  }
+  osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_STARTUP, PUT_MESSAGE_WAV_TIMEOUT);
   while (1) {
     evt = osMessageGet(SIG_GPIOHandle, 10);
 
@@ -76,9 +76,7 @@ void Handle_System(void const* argument) {
           printf_SYSTEM(">>>System in close mode\n");
           System_Status = SYS_close;
           // System into CLOSE
-          while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_POWEROFF, 0)) {
-            ;
-          }
+          osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_POWEROFF, PUT_MESSAGE_WAV_TIMEOUT);
           osDelay(2000);
           HAL_GPIO_WritePin(Power_EN_GPIO_Port, Power_EN_Pin, GPIO_PIN_RESET);
           continue;
@@ -86,12 +84,8 @@ void Handle_System(void const* argument) {
           printf_SYSTEM(">>>System in running mode\n");
           System_Status = SYS_running;
           // System into RUNNING
-          while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_INTORUN, 0)) {
-            ;
-          }
-          while (osMessagePut(SIG_LEDHandle, SIG_LED_INTORUN, 0)) {
-            ;
-          }
+          osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_INTORUN, PUT_MESSAGE_WAV_TIMEOUT);
+          osMessagePut(SIG_LEDHandle, SIG_LED_INTORUN, PUT_MESSAGE_LED_TIMEOUT);
           continue;
         }
       }
@@ -114,12 +108,8 @@ void Handle_System(void const* argument) {
         printf_SYSTEM(">>>System in ready mode\n");
         System_Status = SYS_ready;
         // System into READY
-        while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_OUTRUN, 0)) {
-          ;
-        }
-        while (osMessagePut(SIG_LEDHandle, SIG_LED_OUTRUN, 0)) {
-          ;
-        }
+        osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_OUTRUN, PUT_MESSAGE_WAV_TIMEOUT);
+        osMessagePut(SIG_LEDHandle, SIG_LED_OUTRUN, PUT_MESSAGE_LED_TIMEOUT);
         continue;
       }
     }  // end of System = running, event == Power key
@@ -140,9 +130,7 @@ void Handle_System(void const* argument) {
         sBANK += 1;
         sBANK %= nBank;
         printf_SYSTEM(">>>System put bank switch message\n");
-        while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_BANKSWITCH, 0)) {
-          ;
-        }
+        osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_BANKSWITCH, PUT_MESSAGE_WAV_TIMEOUT);
       }
       continue;
     }
@@ -158,12 +146,8 @@ void Handle_System(void const* argument) {
           break;
         else if (++cnt >= SYS_CFG.TEtrigger) {
           printf_SYSTEM(">>>System put Trigger E\n");
-          while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERE, 0)) {
-            ;
-          }
-          while (osMessagePut(SIG_LEDHandle, SIG_LED_TRIGGERE, 0)) {
-            ;
-          }
+          osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERE, PUT_MESSAGE_WAV_TIMEOUT);
+          osMessagePut(SIG_LEDHandle, SIG_LED_TRIGGERE, PUT_MESSAGE_LED_TIMEOUT);
           break;
         }
       }
@@ -175,21 +159,13 @@ void Handle_System(void const* argument) {
             break;
         }
         printf_SYSTEM(">>>System put Trigger E off\n");
-        while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGEREOFF, 0)) {
-          ;
-        }
-        while (osMessagePut(SIG_LEDHandle, SIG_LED_TRIGGEREOFF, 0)) {
-          ;
-        }
+        osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGEREOFF, PUT_MESSAGE_WAV_TIMEOUT);
+        osMessagePut(SIG_LEDHandle, SIG_LED_TRIGGEREOFF, PUT_MESSAGE_LED_TIMEOUT);
       } else if (!Trigger_Freeze_TIME.TD) {
         Trigger_Freeze_TIME.TD = SYS_CFG.TDfreeze;
         printf_SYSTEM(">>>System put Trigger D\n");
-        while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERD, 0)) {
-          ;
-        }
-        while (osMessagePut(SIG_LEDHandle, SIG_LED_TRIGGERD, 0)) {
-          ;
-        }
+        osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERD, PUT_MESSAGE_WAV_TIMEOUT);
+        osMessagePut(SIG_LEDHandle, SIG_LED_TRIGGERD, PUT_MESSAGE_LED_TIMEOUT);
       }
     }
     // end of System = running , event == User Key
@@ -216,11 +192,11 @@ void Handle_GPIO(void const* argument) {
         printf_KEY("Power KEY UP\n");
       }
       if (GPIO_Buffer == GPIO_PIN_SET)
-        while (osMessagePut(SIG_GPIOHandle, SIG_POWERKEY_DOWN, 0)) {
+        while (osMessagePut(SIG_GPIOHandle, SIG_POWERKEY_DOWN, PUT_MESSAGE_LED_TIMEOUT)) {
           ;
         }
       else
-        while (osMessagePut(SIG_GPIOHandle, SIG_POWERKEY_UP, 0)) {
+        while (osMessagePut(SIG_GPIOHandle, SIG_POWERKEY_UP, PUT_MESSAGE_LED_TIMEOUT)) {
           ;
         }
     }
@@ -236,11 +212,11 @@ void Handle_GPIO(void const* argument) {
         printf_KEY("User KEY UP\n");
       }
       if (GPIO_Buffer == GPIO_PIN_RESET)
-        while (osMessagePut(SIG_GPIOHandle, SIG_USERKEY_DOWN, 0)) {
+        while (osMessagePut(SIG_GPIOHandle, SIG_USERKEY_DOWN, PUT_MESSAGE_LED_TIMEOUT)) {
           ;
         }
       else
-        while (osMessagePut(SIG_GPIOHandle, SIG_USERKEY_UP, 0)) {
+        while (osMessagePut(SIG_GPIOHandle, SIG_USERKEY_UP, PUT_MESSAGE_LED_TIMEOUT)) {
           ;
         }
     }

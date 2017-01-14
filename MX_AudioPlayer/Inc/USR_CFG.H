@@ -54,4 +54,7 @@ typedef enum {
 #define T_nSparkGap 150
 #define T_Electricl 100
 
+#define PUT_MESSAGE_WAV_TIMEOUT 20
+#define PUT_MESSAGE_LED_TIMEOUT 20
+
 #endif
