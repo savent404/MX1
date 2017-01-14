@@ -11,7 +11,7 @@
 #define osFIFO_SIZE 256
 #define osFIFO_NUM  5
 __inline __weak uint16_t convert_single(uint16_t src);
-__inline __weak uint16_t convert_double(uint16_t src_1, uint16_t src_2);
+__inline __weak uint16_t convert_double(int16_t src_1, int16_t src_2);
 
 /* When System from Close into Ready */
 extern const uint8_t SIG_AUDIO_STARTUP;
