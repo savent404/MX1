@@ -1,6 +1,6 @@
 Configuration	MX_AudioPlayer
 STM32CubeMX 	4.16.1
-Date	12/23/2016
+Date	12/31/2016
 MCU	STM32F103RDTx
 
 
@@ -19,7 +19,7 @@ SPI2	Full-Duplex Master	SPI2_MOSI	PB15
 SPI2	Full-Duplex Master	SPI2_SCK	PB13
 SYS	Serial Wire	SYS_JTCK-SWCLK	PA14
 SYS	Serial Wire	SYS_JTMS-SWDIO	PA13
-SYS	SysTick	SYS_VS_Systick	VP_SYS_VS_Systick
+SYS	TIM8	SYS_VS_tim8	VP_SYS_VS_tim8
 TIM2	Reset Mode	TIM2_VS_ControllerModeReset	VP_TIM2_VS_ControllerModeReset
 TIM2	ITR0	TIM2_VS_ClockSourceITR	VP_TIM2_VS_ClockSourceITR
 TIM2	Internal Clock	TIM2_VS_ClockSourceINT	VP_TIM2_VS_ClockSourceINT

@@ -4,7 +4,7 @@
   * Description        : This file contains the common defines of the application
   ******************************************************************************
   *
-  * COPYRIGHT(c) 2016 STMicroelectronics
+  * COPYRIGHT(c) 2017 STMicroelectronics
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -65,14 +65,8 @@
 #define CS_GPIO_Port GPIOB
 #define LIS3DH_INTI_Pin GPIO_PIN_6
 #define LIS3DH_INTI_GPIO_Port GPIOC
-#define LED1_Pin GPIO_PIN_8
-#define LED1_GPIO_Port GPIOA
-#define LED2_Pin GPIO_PIN_9
-#define LED2_GPIO_Port GPIOA
-#define LED3_Pin GPIO_PIN_10
-#define LED3_GPIO_Port GPIOA
-#define LED4_Pin GPIO_PIN_11
-#define LED4_GPIO_Port GPIOA
+#define Audio_Soft_EN_Pin GPIO_PIN_15
+#define Audio_Soft_EN_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

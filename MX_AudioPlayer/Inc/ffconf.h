@@ -9,6 +9,7 @@
 / Additional user header to be used  
 /-----------------------------------------------------------------------------*/
 #include "stm32f1xx_hal.h"
+#include "cmsis_os.h"    /* _FS_REENTRANT set to 1 */                
 #include "bsp_driver_sd.h"
 
 /*-----------------------------------------------------------------------------/
@@ -67,7 +68,7 @@
 / Locale and Namespace Configurations
 /-----------------------------------------------------------------------------*/
 
-#define _CODE_PAGE         1
+#define _CODE_PAGE         437
 /* This option specifies the OEM code page to be used on the target system.
 /  Incorrect setting of the code page can cause a file open failure.
 /
@@ -98,8 +99,8 @@
 /   874  - Thai (OEM, Windows)
 /   1    - ASCII (No extended character. Valid for only non-LFN configuration.) */
 
-#define _USE_LFN     0    /* 0 to 3 */
-#define _MAX_LFN     255    /* Maximum LFN length to handle (12 to 255) */
+#define _USE_LFN     2    /* 0 to 3 */
+#define _MAX_LFN     30    /* Maximum LFN length to handle (12 to 255) */
 /* The _USE_LFN option switches the LFN feature.
 /
 /   0: Disable LFN feature. _MAX_LFN has no effect.
@@ -215,7 +216,7 @@
 /      can be opened simultaneously under file lock control. Note that the file
 /      lock feature is independent of re-entrancy. */
 
-#define _FS_REENTRANT    0  /* 0:Disable or 1:Enable */
+#define _FS_REENTRANT    1  /* 0:Disable or 1:Enable */
 #define _FS_TIMEOUT      1000 /* Timeout period in unit of time ticks */
 #define _SYNC_t          osSemaphoreId 
 /* The _FS_REENTRANT option switches the re-entrancy (thread safe) of the FatFs
