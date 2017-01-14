@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 #ifndef DEBUG_FATFS
-#define DEBUG_FATFS 0
+#define DEBUG_FATFS 1
 #endif
 #if DEBUG_FATFS
 #define printf_FATFS printf
@@ -14,7 +14,7 @@
 
 
 #ifndef DEBUG_DACDMA
-#define DEBUG_DACDMA 0
+#define DEBUG_DACDMA 1
 #endif
 #if DEBUG_DACDMA
 #define printf_DACDMA printf
@@ -49,11 +49,11 @@
 #if DEBUG_RANDOMFILE
 #define printf_RANDOMFILE printf
 #else
-#define printf_RANDOMFILE
+#define printf_RANDOMFILE(x,...) ;
 #endif //DEBUG_RANDOMFILE
 
 #ifndef DEBUG_KEY
-#define DEBUG_KEY 0
+#define DEBUG_KEY 1
 #endif
 #if DEBUG_KEY
 #define printf_KEY printf

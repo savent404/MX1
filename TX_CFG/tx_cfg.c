@@ -168,7 +168,7 @@ void TX_CFG(struct config *cfg, RGBL rgbl[][2]) {
       case 63:
         sscanf(val, "%d,%d,%d,%d", &(rgbl[pos - 48][1].R),
                &(rgbl[pos - 48][1].G), &(rgbl[pos - 32][1].B),
-               &(rgbl[pos - 48][1].L)))
+               &(rgbl[pos - 48][1].L));
         break;
     }
   }

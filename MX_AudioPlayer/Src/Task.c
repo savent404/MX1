@@ -161,7 +161,7 @@ void Handle_System(void const* argument) {
           while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERE, 0)) {
             ;
           }
-          while (osMessagePut(SIG_LEDHandle, SIG_AUDIO_TRIGGERE, 0)) {
+          while (osMessagePut(SIG_LEDHandle, SIG_LED_TRIGGERE, 0)) {
             ;
           }
           break;
@@ -178,7 +178,7 @@ void Handle_System(void const* argument) {
         while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGEREOFF, 0)) {
           ;
         }
-        while (osMessagePut(SIG_LEDHandle, SIG_AUDIO_TRIGGEREOFF, 0)) {
+        while (osMessagePut(SIG_LEDHandle, SIG_LED_TRIGGEREOFF, 0)) {
           ;
         }
       } else if (!Trigger_Freeze_TIME.TD) {
@@ -187,7 +187,7 @@ void Handle_System(void const* argument) {
         while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERD, 0)) {
           ;
         }
-        while (osMessagePut(SIG_LEDHandle, SIG_AUDIO_TRIGGERD, 0)) {
+        while (osMessagePut(SIG_LEDHandle, SIG_LED_TRIGGERD, 0)) {
           ;
         }
       }
@@ -275,7 +275,7 @@ void x3DListHandle(void const* argument) {
       Trigger_Freeze_TIME.TC = SYS_CFG.TCfreeze;
       printf_SYSTEM(">>>System put Trigger C\n");
       osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERC, 10);
-      osMessagePut(SIG_LEDHandle, SIG_AUDIO_TRIGGERC, 10);
+      osMessagePut(SIG_LEDHandle, SIG_LED_TRIGGERC, 10);
       continue;
     }
     // Trigger C
@@ -284,7 +284,7 @@ void x3DListHandle(void const* argument) {
       Trigger_Freeze_TIME.TB = SYS_CFG.TBfreeze;
       printf_SYSTEM(">>>System put Trigger B\n");
       osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERB, 10);
-      osMessagePut(SIG_LEDHandle, SIG_AUDIO_TRIGGERB, 10);
+      osMessagePut(SIG_LEDHandle, SIG_LED_TRIGGERB, 10);
       continue;
     }
 

@@ -38,10 +38,10 @@ extern const uint8_t SIG_LED_TRIGGERE;
 extern const uint8_t SIG_LED_TRIGGEREOFF;
 
 typedef struct {
-  uint8_t R;
-  uint8_t G;
-  uint8_t B;
-  uint8_t L;
+  int R;
+  int G;
+  int B;
+  int L;
 }RGBL;
 
 void LED_COLOR_SET(RGBL data, uint8_t DC, uint8_t mode);

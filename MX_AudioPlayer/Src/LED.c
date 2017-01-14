@@ -1,4 +1,5 @@
 #include "LED.h"
+#include "DEBUG_CFG.h"
 #include "tx_cfg.h"
 extern struct config SYS_CFG;
 extern uint8_t sBANK;
@@ -35,7 +36,7 @@ void LEDHandle(void const *argument) {
   osEvent evt;
   enum { IN_TRIGGER_E, OUT_TRIGGER_E } trigger_e = OUT_TRIGGER_E;
   uint8_t flag = 1;
-  printf("LED Handle init start\n");
+  printf_LED("LED Handle init start\n");
   HAL_TIM_Base_Start(&htim1);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
@@ -47,18 +48,21 @@ void LEDHandle(void const *argument) {
     } else {
       evt = osMessageGet(SIG_LEDHandle, SYS_CFG.Ecycle / 2);
     }
-    printf("LED message GET\n");
     if (trigger_e == IN_TRIGGER_E) {
       LED_COLOR_SET(RGB_PROFILE[sBANK][flag], 0xFF, 1);
+			printf_LED("Trigger E Half Cycle hit\n");
       if (flag)
         flag = 0;
       else
         flag = 1;
     }
+		if (evt.status != osEventMessage) continue;
+		printf_LED("LED message GET\n");
+		
     switch (evt.value.v) {
       case SIG_LED_INTORUN: {
         uint16_t cnt;
-        printf("&Get mode running message\n");
+        printf_LED("&LED\tGet mode running message\n");
         for (cnt = 1; cnt <= SYS_CFG.TLon / 10; cnt++) {
           LED_COLOR_SET(RGB_PROFILE[sBANK][0], 0xFF * cnt / (SYS_CFG.TLon / 10),
                         1);
@@ -68,7 +72,7 @@ void LEDHandle(void const *argument) {
       }
       case SIG_LED_OUTRUN: {
         uint16_t cnt;
-        printf("&Get mode ready message\n");
+        printf_LED("&LED\tGet mode ready message\n");
         cnt = SYS_CFG.TLoff / 10;
         while (cnt--) {
           LED_COLOR_SET(RGB_PROFILE[0][0], 0xFF * cnt / (SYS_CFG.TLoff / 10),
@@ -78,13 +82,13 @@ void LEDHandle(void const *argument) {
         break;
       }
       case SIG_LED_TRIGGERB: {
-        printf("&Get trigger B message\n");
-        printf("&No oprat should do\n");
+        printf_LED("&LED\tGet trigger B message\n");
+        printf_LED("&No oprat should do\n");
         break;
       }
       case SIG_LED_TRIGGERC: {
         uint8_t cycle;
-        printf("&Get trigger C message\n");
+        printf_LED("&LED\tGet trigger C message\n");
         cycle = SYS_CFG.Ccount - 1;
         while (cycle--) {
           LED_COLOR_SET(RGB_PROFILE[sBANK][1], 0xFF, 1);
@@ -98,25 +102,27 @@ void LEDHandle(void const *argument) {
         break;
       }
       case SIG_LED_TRIGGERD: {
-        printf("&Get trigger D message\n");
+        printf_LED("&LED\tGet trigger D message\n");
         LED_COLOR_SET(RGB_PROFILE[sBANK][1], 0xFF, 1);
         osDelay(SYS_CFG.TDflip);
         LED_COLOR_SET(RGB_PROFILE[sBANK][0], 0xFF, 1);
         break;
       }
       case SIG_LED_TRIGGERE: {
-        printf("&Get trigger E on message\n");
+        printf_LED("&LED\tGet trigger E on message\n");
+				LED_COLOR_SET(RGB_PROFILE[sBANK][1], 0xFF, 1);
         trigger_e = IN_TRIGGER_E;
-        flag = 1;
+        flag = 0;
         break;
       }
       case SIG_LED_TRIGGEREOFF: {
-        printf("&Get trigger E off message\n");
+        printf_LED("&LED\tGet trigger E off message\n");
+				LED_COLOR_SET(RGB_PROFILE[sBANK][0], 0xFF, 1);
         trigger_e = OUT_TRIGGER_E;
         break;
       }
       default: {
-        printf("&Get undefine SIG of LED:%d\n", evt.value.v);
+        printf_LED("&LED\tGet undefine SIG of LED:%d\n", evt.value.v);
         break;
       }
     }
