@@ -67,7 +67,16 @@
 #if DEBUG_SYSTEM
 #define printf_SYSTEM printf
 #else
-#define printf_SYSTEM(x,...) printf
+#define printf_SYSTEM(x,...) ;
 #endif //DEBUG_SYSTEM
 
+
+#ifndef DEBUG_LED
+#define DEBUG_LED 1
 #endif
+#if DEBUG_LED
+#define printf_LED printf
+#else 
+#define printf_LED(x,...) ;
+#endif
+#endif //DEBUG_LED

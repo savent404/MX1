@@ -1,13 +1,138 @@
 #include "LED.h"
-void LED_switch(LEDs led, GPIO_PinState stat) {
-	switch (led) {
-		case LED1:	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, stat); break;
-		case LED2:  HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, stat); break;
-		case LED3:	HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, stat); break;
-		case LED4:	HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, stat); break;
-		case LED5:	HAL_GPIO_WritePin(LED5_GPIO_Port, LED5_Pin, stat); break;
-		case LED6:	HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin, stat); break;
-		case LED7:	HAL_GPIO_WritePin(LED7_GPIO_Port, LED7_Pin, stat); break;
-		case LED8:	HAL_GPIO_WritePin(LED8_GPIO_Port, LED8_Pin, stat); break;
-	}
+#include "tx_cfg.h"
+extern struct config SYS_CFG;
+extern uint8_t sBANK;
+extern osMessageQId SIG_LEDHandle;
+extern RGBL RGB_PROFILE[16][2];
+/* When System from Close into Ready */
+const uint8_t SIG_LED_STARTUP = 1;
+
+/* When System from Ready into Close */
+const uint8_t SIG_LED_POWEROFF = 2;
+
+/* When SYstem from Ready into running */
+const uint8_t SIG_LED_INTORUN = 3;
+
+/* When System from Running into Reayd */
+const uint8_t SIG_LED_OUTRUN = 4;
+
+/* When System in Ready switch the Bank */
+const uint8_t SIG_LED_BANKSWITCH = 5;
+
+/* Triggers */
+/* When System in Running, Trigger B */
+const uint8_t SIG_LED_TRIGGERB = 0x10;
+/* When System in Running, Trigger C */
+const uint8_t SIG_LED_TRIGGERC = 0x20;
+/* When System in Running, Trigger D */
+const uint8_t SIG_LED_TRIGGERD = 0x30;
+/* When System in Running, Trigger E */
+const uint8_t SIG_LED_TRIGGERE = 0x40;
+/* When System in Running, Trigger E off */
+const uint8_t SIG_LED_TRIGGEREOFF = 0x50;
+
+void LEDHandle(void const *argument) {
+  osEvent evt;
+  enum { IN_TRIGGER_E, OUT_TRIGGER_E } trigger_e = OUT_TRIGGER_E;
+  uint8_t flag = 1;
+  printf("LED Handle init start\n");
+  HAL_TIM_Base_Start(&htim1);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
+  while (1) {
+    if (trigger_e == OUT_TRIGGER_E) {
+      evt = osMessageGet(SIG_LEDHandle, osWaitForever);
+    } else {
+      evt = osMessageGet(SIG_LEDHandle, SYS_CFG.Ecycle / 2);
+    }
+    printf("LED message GET\n");
+    if (trigger_e == IN_TRIGGER_E) {
+      LED_COLOR_SET(RGB_PROFILE[sBANK][flag], 0xFF, 1);
+      if (flag)
+        flag = 0;
+      else
+        flag = 1;
+    }
+    switch (evt.value.v) {
+      case SIG_LED_INTORUN: {
+        uint16_t cnt;
+        printf("&Get mode running message\n");
+        for (cnt = 1; cnt <= SYS_CFG.TLon / 10; cnt++) {
+          LED_COLOR_SET(RGB_PROFILE[sBANK][0], 0xFF * cnt / (SYS_CFG.TLon / 10),
+                        1);
+          osDelay(10);
+        }
+        break;
+      }
+      case SIG_LED_OUTRUN: {
+        uint16_t cnt;
+        printf("&Get mode ready message\n");
+        cnt = SYS_CFG.TLoff / 10;
+        while (cnt--) {
+          LED_COLOR_SET(RGB_PROFILE[0][0], 0xFF * cnt / (SYS_CFG.TLoff / 10),
+                        0);
+          osDelay(10);
+        }
+        break;
+      }
+      case SIG_LED_TRIGGERB: {
+        printf("&Get trigger B message\n");
+        printf("&No oprat should do\n");
+        break;
+      }
+      case SIG_LED_TRIGGERC: {
+        uint8_t cycle;
+        printf("&Get trigger C message\n");
+        cycle = SYS_CFG.Ccount - 1;
+        while (cycle--) {
+          LED_COLOR_SET(RGB_PROFILE[sBANK][1], 0xFF, 1);
+          osDelay(SYS_CFG.TCflip);
+          LED_COLOR_SET(RGB_PROFILE[sBANK][0], 0xFF, 1);
+          osDelay(SYS_CFG.TCflip);
+        }
+        LED_COLOR_SET(RGB_PROFILE[sBANK][1], 0xFF, 1);
+        osDelay(SYS_CFG.TCflip);
+        LED_COLOR_SET(RGB_PROFILE[sBANK][0], 0xFF, 1);
+        break;
+      }
+      case SIG_LED_TRIGGERD: {
+        printf("&Get trigger D message\n");
+        LED_COLOR_SET(RGB_PROFILE[sBANK][1], 0xFF, 1);
+        osDelay(SYS_CFG.TDflip);
+        LED_COLOR_SET(RGB_PROFILE[sBANK][0], 0xFF, 1);
+        break;
+      }
+      case SIG_LED_TRIGGERE: {
+        printf("&Get trigger E on message\n");
+        trigger_e = IN_TRIGGER_E;
+        flag = 1;
+        break;
+      }
+      case SIG_LED_TRIGGEREOFF: {
+        printf("&Get trigger E off message\n");
+        trigger_e = OUT_TRIGGER_E;
+        break;
+      }
+      default: {
+        printf("&Get undefine SIG of LED:%d\n", evt.value.v);
+        break;
+      }
+    }
+  }
+}
+
+void LED_COLOR_SET(RGBL data, uint8_t DC, uint8_t mode) {
+  if (mode) {
+    TIM1->CCR1 = (uint32_t)data.R * SYS_CFG.Lbright * DC / 0xFF / 1024;
+    TIM1->CCR2 = (uint32_t)data.G * SYS_CFG.Lbright * DC / 0xFF / 1024;
+    TIM1->CCR3 = (uint32_t)data.B * SYS_CFG.Lbright * DC / 0xFF / 1024;
+    TIM1->CCR4 = (uint32_t)data.L * SYS_CFG.Lbright * DC / 0xFF / 1024;
+  } else {
+    TIM1->CCR1 = TIM1->CCR1 * DC / 0xFF;
+    TIM1->CCR2 = TIM1->CCR2 * DC / 0xFF;
+    TIM1->CCR3 = TIM1->CCR3 * DC / 0xFF;
+    TIM1->CCR4 = TIM1->CCR4 * DC / 0xFF;
+  }
 }

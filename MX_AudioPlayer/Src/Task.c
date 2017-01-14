@@ -10,14 +10,16 @@
 #include "math.h"
 #include "USR_CFG.h"
 #include "DEBUG_CFG.h"
-
+#include "LED.h"
 extern struct config SYS_CFG;
+extern RGBL RGB_PROFILE[16][2];
 
 extern osThreadId defaultTaskHandle;
 extern osThreadId GPIOHandle;
 extern osThreadId x3DList_CTLHandle;
 extern osMessageQId SIG_GPIOHandle;
 extern osMessageQId SIG_PLAYWAVHandle;
+extern osMessageQId SIG_LEDHandle;
 extern osTimerId TriggerFreezTimerHandle;
 
 const uint32_t SIG_POWERKEY_DOWN = 0x0001;
@@ -87,6 +89,9 @@ void Handle_System(void const* argument) {
           while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_INTORUN, 0)) {
             ;
           }
+          while (osMessagePut(SIG_LEDHandle, SIG_LED_INTORUN, 0)) {
+            ;
+          }
           continue;
         }
       }
@@ -110,6 +115,9 @@ void Handle_System(void const* argument) {
         System_Status = SYS_ready;
         // System into READY
         while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_OUTRUN, 0)) {
+          ;
+        }
+        while (osMessagePut(SIG_LEDHandle, SIG_LED_OUTRUN, 0)) {
           ;
         }
         continue;
@@ -153,6 +161,9 @@ void Handle_System(void const* argument) {
           while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERE, 0)) {
             ;
           }
+          while (osMessagePut(SIG_LEDHandle, SIG_AUDIO_TRIGGERE, 0)) {
+            ;
+          }
           break;
         }
       }
@@ -167,10 +178,16 @@ void Handle_System(void const* argument) {
         while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGEREOFF, 0)) {
           ;
         }
+        while (osMessagePut(SIG_LEDHandle, SIG_AUDIO_TRIGGEREOFF, 0)) {
+          ;
+        }
       } else if (!Trigger_Freeze_TIME.TD) {
         Trigger_Freeze_TIME.TD = SYS_CFG.TDfreeze;
         printf_SYSTEM(">>>System put Trigger D\n");
         while (osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERD, 0)) {
+          ;
+        }
+        while (osMessagePut(SIG_LEDHandle, SIG_AUDIO_TRIGGERD, 0)) {
           ;
         }
       }
@@ -254,11 +271,11 @@ void x3DListHandle(void const* argument) {
     ans = ans * 4 / 0x10000 * 512;
 
     // Trigger B
-
     if (SYS_CFG.Cl <= ans && SYS_CFG.Ch >= ans && !Trigger_Freeze_TIME.TC) {
       Trigger_Freeze_TIME.TC = SYS_CFG.TCfreeze;
       printf_SYSTEM(">>>System put Trigger C\n");
       osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERC, 10);
+      osMessagePut(SIG_LEDHandle, SIG_AUDIO_TRIGGERC, 10);
       continue;
     }
     // Trigger C
@@ -267,6 +284,7 @@ void x3DListHandle(void const* argument) {
       Trigger_Freeze_TIME.TB = SYS_CFG.TBfreeze;
       printf_SYSTEM(">>>System put Trigger B\n");
       osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERB, 10);
+      osMessagePut(SIG_LEDHandle, SIG_AUDIO_TRIGGERB, 10);
       continue;
     }
 
