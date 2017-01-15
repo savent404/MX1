@@ -40,6 +40,10 @@ extern const uint8_t SIG_AUDIO_TRIGGERE;
 extern const uint8_t SIG_AUDIO_TRIGGEREOFF;
 /* When LED change bank */
 extern const uint8_t SIG_AUDIO_COLORSWITCH;
+/* Warnning Low Power */
+extern const uint8_t SIG_AUDIO_LOWPOWER;
+/* Warnning restart */
+extern const uint8_t SIG_AUDIO_RESTART;
 
 extern osThreadId    WAV_CTLHandle;
 extern osThreadId    DAC_CTLHandle;

@@ -67,6 +67,10 @@ const uint8_t SIG_AUDIO_TRIGGERE = 0x08;
 const uint8_t SIG_AUDIO_TRIGGEREOFF = 0x09;
 /* When LED change bank */
 const uint8_t SIG_AUDIO_COLORSWITCH = 0x0A;
+/* Warnning Low Power */
+const uint8_t SIG_AUDIO_LOWPOWER = 0x0B;
+/* Warnning restart */
+const uint8_t SIG_AUDIO_RESTART = 0x0C;
 
 // wave pcm buffer, tow channels
 static uint16_t audio_buf1[osFIFO_NUM][osFIFO_SIZE],
@@ -79,27 +83,26 @@ __inline __weak uint16_t convert_single(uint16_t src) {
   return ((src + 0x7FFF) >> 4);
 }
 __inline __weak uint16_t convert_double(int16_t src_1, int16_t src_2) {
-/*  src_1 += 0x7FFF;
-  src_2 += 0x7FFF;
-  src_1 >>= 4;
-  src_2 >>= 4;
-  return (src_1 / 2 + src_2);*/
+  /*  src_1 += 0x7FFF;
+    src_2 += 0x7FFF;
+    src_1 >>= 4;
+    src_2 >>= 4;
+    return (src_1 / 2 + src_2);*/
   static float f = 1;
   int32_t buf = src_1 + src_2;
-  if (buf > INT16_MAX/2) {
-    f = (float)INT16_MAX/2/(float)buf;
-    buf = INT16_MAX/2;
+  if (buf > INT16_MAX / 2) {
+    f = (float)INT16_MAX / 2 / (float)buf;
+    buf = INT16_MAX / 2;
   }
   buf *= f;
-  if (buf < INT16_MIN/2) {
-    f = (float)INT16_MIN/2/(float)buf;
-    buf = INT16_MIN/2;
+  if (buf < INT16_MIN / 2) {
+    f = (float)INT16_MIN / 2 / (float)buf;
+    buf = INT16_MIN / 2;
   }
   if (f < 1) {
-    f += ((float)1 - f)/(float)32;
+    f += ((float)1 - f) / (float)32;
   }
-  return (buf >> 4) + 0x1000/2;
-
+  return (buf >> 4) + 0x1000 / 2;
 }
 
 /***
@@ -673,8 +676,8 @@ void WAVHandle(void const* argument) {
             case SIG_AUDIO_COLORSWITCH: {
               printf_RANDOMFILE("#Get LED switch Color message\n");
               CRITICAL_FUNC(
-                  fres =
-                      f_open(&file_1, (const TCHAR*)"system/colorswitch.wav", FA_READ));
+                  fres = f_open(&file_1, (const TCHAR*)"system/colorswitch.wav",
+                                FA_READ));
               if (fres != FR_OK) {
                 printf_FATFS("Open file Error:%d\n", fres);
                 break;
@@ -708,6 +711,45 @@ void WAVHandle(void const* argument) {
         CRITICAL_FUNC(fres = f_close(&file_1));
         printf_FATFS("FATFS:a file:[%s] closed:%d\n", path, fres);
       } break;
+      case SIG_AUDIO_LOWPOWER: {
+        uint8_t cnt = 2;
+        while (cnt--) {
+          printf_RANDOMFILE("#Get lowpower message\n");
+          CRITICAL_FUNC(fres =
+                            f_open(&file_1, "0:/System/lowpower.wav", FA_READ));
+          if (fres != FR_OK) {
+            printf_FATFS("FATFS:Open file:%s Error:%d\n",
+                         "0:/System/lowpower.wav", fres);
+            break;
+          }
+
+          NORMAL_READ_PLAY_FILE_1();
+
+          CRITICAL_FUNC(fres = f_close(&file_1));
+
+          printf_FATFS("FATFS:a flie:[%s] closed:%d\n",
+                       "0:/System/lowpower.wav", fres);
+        }
+      } break;
+
+      case SIG_AUDIO_RESTART: {
+        printf_RANDOMFILE("#Get recharge message\n");
+        CRITICAL_FUNC(fres =
+                          f_open(&file_1, "0:/System/recharge.wav", FA_READ));
+        if (fres != FR_OK) {
+          printf_FATFS("FATFS:Open file:%s Error:%d\n",
+                       "0:/System/recharge.wav", fres);
+          break;
+        }
+
+        NORMAL_READ_PLAY_FILE_1();
+
+        CRITICAL_FUNC(fres = f_close(&file_1));
+
+        printf_FATFS("FATFS:a flie:[%s] closed:%d\n", "0:/System/recharge.wav",
+                     fres);
+        HAL_GPIO_WritePin(Power_EN_GPIO_Port, Power_EN_Pin, GPIO_PIN_RESET);
+      }
       // case ...
       default:
         break;

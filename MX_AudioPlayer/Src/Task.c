@@ -11,6 +11,7 @@
 #include "USR_CFG.h"
 #include "DEBUG_CFG.h"
 #include "LED.h"
+#include "adc.h"
 extern struct config SYS_CFG;
 extern RGBL RGB_PROFILE[16][2];
 
@@ -43,7 +44,20 @@ uint8_t MUTE_FLAG = 0;
 void Handle_System(void const* argument) {
   uint32_t cnt;
   osEvent evt;
+  float power_voltag = 0;
   extern struct config SYS_CFG;
+
+  HAL_ADCEx_Calibration_Start(&hadc1);
+  HAL_ADC_Start(&hadc1);
+  HAL_ADC_PollForConversion(&hadc1, 1);
+  power_voltag = HAL_ADC_GetValue(&hadc1);
+  power_voltag = power_voltag*3.3/4096.0;
+
+  if (power_voltag <= 1.80 && power_voltag >= 1.70) {
+    printf_SYSTEM(">>>System put lowPower message\n");
+    printf_SYSTEM("Power voltag:%.2fV\n", power_voltag);
+    osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_LOWPOWER, osWaitForever);
+  }
   printf_SYSTEM(">>>System in ready mode\n");
   if (HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin) == GPIO_PIN_SET) MUTE_FLAG = 1;
   System_Status = SYS_ready;
@@ -56,7 +70,15 @@ void Handle_System(void const* argument) {
     osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_STARTUP, PUT_MESSAGE_WAV_TIMEOUT);
   while (1) {
     evt = osMessageGet(SIG_GPIOHandle, 10);
-
+		if (power_voltag < 1.70) {
+			printf(">>>System restart :%.2fV\n", power_voltag);
+			osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_RESTART, osWaitForever);
+			osDelay(osWaitForever);
+		}
+		
+		power_voltag = HAL_ADC_GetValue(&hadc1);                
+		power_voltag = power_voltag*3.3/4096.0;
+		
     if (System_Status == SYS_ready && evt.status == osEventMessage &&
         evt.value.signals & SIG_POWERKEY_DOWN) {
       cnt = 0;
