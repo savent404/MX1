@@ -36,6 +36,10 @@ extern const uint8_t SIG_LED_TRIGGERD;
 extern const uint8_t SIG_LED_TRIGGERE;
 /* When System in Running, Trigger E off */
 extern const uint8_t SIG_LED_TRIGGEREOFF;
+/* When charge power .ing */
+extern const uint8_t SIG_LED_CHARGEA;
+/* WHen charge power .done */
+extern const uint8_t SIG_LED_CHARGEB;
 
 extern const uint8_t SIG_LED_SWITCHBANK;
 

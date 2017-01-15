@@ -51,6 +51,8 @@
 #define LED8_GPIO_Port GPIOC
 #define Power_ADC_Pin GPIO_PIN_0
 #define Power_ADC_GPIO_Port GPIOA
+#define Charge_Check_Pin GPIO_PIN_2
+#define Charge_Check_GPIO_Port GPIOA
 #define DAC_OUT_Pin GPIO_PIN_4
 #define DAC_OUT_GPIO_Port GPIOA
 #define Audio_EN_Pin GPIO_PIN_5

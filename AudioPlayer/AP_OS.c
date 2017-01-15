@@ -71,6 +71,8 @@ const uint8_t SIG_AUDIO_COLORSWITCH = 0x0A;
 const uint8_t SIG_AUDIO_LOWPOWER = 0x0B;
 /* Warnning restart */
 const uint8_t SIG_AUDIO_RESTART = 0x0C;
+/* Warnning power charge */
+const uint8_t SIG_AUDIO_CHARGE = 0x0D;
 
 // wave pcm buffer, tow channels
 static uint16_t audio_buf1[osFIFO_NUM][osFIFO_SIZE],
@@ -749,6 +751,23 @@ void WAVHandle(void const* argument) {
         printf_FATFS("FATFS:a flie:[%s] closed:%d\n", "0:/System/recharge.wav",
                      fres);
         HAL_GPIO_WritePin(Power_EN_GPIO_Port, Power_EN_Pin, GPIO_PIN_RESET);
+      }
+      case SIG_AUDIO_CHARGE: {
+        printf_RANDOMFILE("#Get system charge message\n");
+        CRITICAL_FUNC(fres =
+                          f_open(&file_1, "0:/System/charging.wav", FA_READ));
+        if (fres != FR_OK) {
+          printf_FATFS("FATFS:Open file:%s Error:%d\n",
+                       "0:/System/charging.wav", fres);
+          break;
+        }
+
+        NORMAL_READ_PLAY_FILE_1();
+
+        CRITICAL_FUNC(fres = f_close(&file_1));
+
+        printf_FATFS("FATFS:a flie:[%s] closed:%d\n", "0:/System/charging.wav",
+                     fres);
       }
       // case ...
       default:

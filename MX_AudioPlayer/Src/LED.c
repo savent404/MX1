@@ -31,6 +31,10 @@ const uint8_t SIG_LED_TRIGGERD = 0x30;
 const uint8_t SIG_LED_TRIGGERE = 0x40;
 /* When System in Running, Trigger E off */
 const uint8_t SIG_LED_TRIGGEREOFF = 0x50;
+/* When charge power .ing */
+const uint8_t SIG_LED_CHARGEA = 0xFF;
+/* WHen charge power .done */
+const uint8_t SIG_LED_CHARGEB = 0xEE;
 
 const uint8_t SIG_LED_SWITCHBANK = 0x60;
 
@@ -61,6 +65,8 @@ void LEDHandle(void const *argument) {
     }
     if (evt.status != osEventMessage) continue;
     printf_LED("LED message GET\n");
+
+  TAG:
 
     switch (evt.value.v) {
       case SIG_LED_INTORUN: {
@@ -138,19 +144,60 @@ void LEDHandle(void const *argument) {
                           0);
             osDelay(10);
           }
-          {
-            uint16_t cnt;
-            printf_LED("&LED\tGet mode running message\n");
-            for (cnt = 1; cnt <= SYS_CFG.TLon / 10; cnt++) {
-              LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][0],
-                            0xFF * cnt / (SYS_CFG.TLon / 10), 1);
-              osDelay(10);
-            }
-            break;
-          }
-          break;
         }
-        // Power up LED then
+        {
+          uint16_t cnt;
+          printf_LED("&LED\tGet mode running message\n");
+          for (cnt = 1; cnt <= SYS_CFG.TLon / 10; cnt++) {
+            LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][0],
+                          0xFF * cnt / (SYS_CFG.TLon / 10), 1);
+            osDelay(10);
+          }
+        }
+      } break;
+      // Power up LED then
+      case SIG_LED_CHARGEA: {
+        printf_LED("&LED\tGet Charge A\n");
+        RGBL r = {1023, 0, 0, 0};
+        uint8_t i;
+        while (1) {
+          for (i = 0; i < 20; i++) {
+            LED_COLOR_SET(r, i, 2);
+            evt = osMessageGet(SIG_LEDHandle, 125);
+            if (evt.status == osEventMessage) {
+              goto TAG;
+            }
+          }
+          for (i = 0; i < 20; i++) {
+            LED_COLOR_SET(r, 20 - i, 2);
+            evt = osMessageGet(SIG_LEDHandle, 125);
+            if (evt.status == osEventMessage) {
+              goto TAG;
+            }
+          }
+        }
+      }
+
+      case SIG_LED_CHARGEB: {
+        printf("&LED\tGet Charge B\n");
+        RGBL r = {0, 1023, 1023, 1023};
+        uint8_t i;
+        while (1) {
+          for (i = 0; i < 20; i++) {
+            LED_COLOR_SET(r, i, 2);
+            evt = osMessageGet(SIG_LEDHandle, 125);
+            if (evt.status == osEventMessage) {
+              goto TAG;
+            }
+          }
+          for (i = 0; i < 20; i++) {
+            LED_COLOR_SET(r, 20 - i, 2);
+            evt = osMessageGet(SIG_LEDHandle, 125);
+            if (evt.status == osEventMessage) {
+              goto TAG;
+            }
+          }
+        }
       }
       default: {
         printf_LED("&LED\tGet undefine SIG of LED:%d\n", evt.value.v);
@@ -161,15 +208,20 @@ void LEDHandle(void const *argument) {
 }
 
 void LED_COLOR_SET(RGBL data, uint8_t DC, uint8_t mode) {
-  if (mode) {
+  if (mode == 1) {
     TIM1->CCR1 = (uint32_t)data.R * SYS_CFG.Lbright * DC / 0xFF / 1024;
     TIM1->CCR2 = (uint32_t)data.G * SYS_CFG.Lbright * DC / 0xFF / 1024;
     TIM1->CCR3 = (uint32_t)data.B * SYS_CFG.Lbright * DC / 0xFF / 1024;
     TIM1->CCR4 = (uint32_t)data.L * SYS_CFG.Lbright * DC / 0xFF / 1024;
-  } else {
+  } else if (mode == 0) {
     TIM1->CCR1 = TIM1->CCR1 * DC / 0xFF;
     TIM1->CCR2 = TIM1->CCR2 * DC / 0xFF;
     TIM1->CCR3 = TIM1->CCR3 * DC / 0xFF;
     TIM1->CCR4 = TIM1->CCR4 * DC / 0xFF;
+  } else if (mode == 2) {
+    TIM1->CCR1 = (uint32_t)data.R * DC / 0xFF / 2;
+    TIM1->CCR2 = (uint32_t)data.G * DC / 0xFF / 2;
+    TIM1->CCR3 = (uint32_t)data.B * DC / 0xFF / 2;
+    TIM1->CCR4 = (uint32_t)data.L * DC / 0xFF / 2;
   }
 }

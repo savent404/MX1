@@ -57,4 +57,7 @@ typedef enum {
 #define PUT_MESSAGE_WAV_TIMEOUT 20
 #define PUT_MESSAGE_LED_TIMEOUT 20
 
+#define RESTART_VOLTAG	(1.70)
+#define LOWPOWER_VOLTAG (1.80)
+#define CC_VOLTAG       (1.85)
 #endif
