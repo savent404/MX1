@@ -459,6 +459,11 @@
               <FileType>1</FileType>
               <FilePath>..\Src\Task.c</FilePath>
             </File>
+            <File>
+              <FileName>sin.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\sin.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

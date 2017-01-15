@@ -39,15 +39,21 @@ __IO enum { SYS_close, SYS_ready, SYS_running } System_Status = SYS_close;
 
 /* Bank now */
 __IO uint8_t sBANK = 0;
+/* Mute flag */
 uint8_t MUTE_FLAG = 0;
+/* Charging flag */
 uint8_t CHARGE_FLAG = 0;
+/* Charge complete flag */
 uint8_t CC_FLAG = 0;
+
 void Handle_System(void const* argument) {
   uint32_t cnt;
   osEvent evt;
   float power_voltag = 0;
   extern struct config SYS_CFG;
-
+	//SD card Parameter error check
+	
+	// ADC check Power voltag
   HAL_ADCEx_Calibration_Start(&hadc1);
   HAL_ADC_Start(&hadc1);
   HAL_ADC_PollForConversion(&hadc1, 1);
