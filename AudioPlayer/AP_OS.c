@@ -73,6 +73,8 @@ const uint8_t SIG_AUDIO_LOWPOWER = 0x0B;
 const uint8_t SIG_AUDIO_RESTART = 0x0C;
 /* Warnning power charge */
 const uint8_t SIG_AUDIO_CHARGE = 0x0D;
+/* When System in Running , exit with mute */
+const uint8_t SIG_AUDIO_OUTRUN_MUTE = 0x0E;
 
 // wave pcm buffer, tow channels
 static uint16_t audio_buf1[osFIFO_NUM][osFIFO_SIZE],
@@ -439,7 +441,15 @@ void WAVHandle(void const* argument) {
               printf_FATFS("FATFS:a file:[%s] closed:%d\n", sbuf, fres);
               loop_flag = 0;
             } break;
-
+            case SIG_AUDIO_OUTRUN_MUTE: {
+              printf_RANDOMFILE("#Get from running into ready message\n");
+              // close hum.wav
+              CRITICAL_FUNC(fres = f_close(&file_2));
+              
+							printf_FATFS("FATFS:a file:[0:/Bank%d/hum.wav] closed:%d",
+													 sBANK + 1, fres);
+							loop_flag = 0;
+            } break;
             case SIG_AUDIO_TRIGGERB: {
               printf_RANDOMFILE("#Get Triiger B\n");
               // get random trigger B file

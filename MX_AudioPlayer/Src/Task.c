@@ -85,7 +85,7 @@ void Handle_System(void const* argument) {
         !CHARGE_FLAG) {
       osMessagePut(SIG_LEDHandle, SIG_LED_CHARGEA, PUT_MESSAGE_LED_TIMEOUT);
       if (System_Status == SYS_running) {
-        osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_OUTRUN, osWaitForever);
+        osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_OUTRUN_MUTE, osWaitForever);
         osMessagePut(SIG_LEDHandle, SIG_LED_OUTRUN, osWaitForever);
         System_Status = SYS_ready;
       }
@@ -113,7 +113,7 @@ void Handle_System(void const* argument) {
     if (evt.status == osEventMessage && CHARGE_FLAG) {
       if (power_voltag < CC_VOLTAG) {
         if (System_Status == SYS_running) {
-          osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_OUTRUN,
+          osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_OUTRUN_MUTE,
                        PUT_MESSAGE_WAV_TIMEOUT);
           osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_CHARGE,
                        PUT_MESSAGE_WAV_TIMEOUT);

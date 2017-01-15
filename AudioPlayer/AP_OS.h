@@ -44,7 +44,8 @@ extern const uint8_t SIG_AUDIO_COLORSWITCH;
 extern const uint8_t SIG_AUDIO_LOWPOWER;
 /* Warnning restart */
 extern const uint8_t SIG_AUDIO_RESTART;
-
+/* When System in Running , exit with mute */
+extern const uint8_t SIG_AUDIO_OUTRUN_MUTE;
 /* Warnning power charge */
 extern const uint8_t SIG_AUDIO_CHARGE;
 
