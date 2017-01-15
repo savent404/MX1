@@ -262,11 +262,28 @@ void x3DListHandle(void const* argument) {
     ans += data.Dz * data.Dz;
     ans = sqrt(ans);
     ans = ans * 4 / 0x10000 * 512;
-
+		{
+			const int BL = 25;
+			const float B[25] = {
+						-0.1922148019,  -0.0182263311, -0.01890571974, -0.01968291961, -0.02026987448,
+						-0.02085572109, -0.02133248374, -0.02187330462, -0.02212323993, -0.02240204439,
+						-0.02272262052,  -0.0226869788,   0.9773607254,  -0.0226869788, -0.02272262052,
+						-0.02240204439, -0.02212323993, -0.02187330462, -0.02133248374, -0.02085572109,
+						-0.02026987448, -0.01968291961, -0.01890571974,  -0.0182263311,  -0.1922148019
+			};
+			static uint8_t pos = 0;
+			static float shift[25] = {0};
+			uint8_t i;
+			shift[pos] = ans;
+			ans = 0;
+			for (i = 0; i < BL; i++)
+				ans += B[i] * shift[(BL + pos - i)%BL];
+		}
     // Trigger B
     if (SYS_CFG.Cl <= ans && SYS_CFG.Ch >= ans && !Trigger_Freeze_TIME.TC) {
       Trigger_Freeze_TIME.TC = SYS_CFG.TCfreeze;
       printf_SYSTEM(">>>System put Trigger C\n");
+			printf_SYSTEM("<<<3DH:%.2f\n", ans);
       if (MUTE_FLAG) osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERC, 10);
       osMessagePut(SIG_LEDHandle, SIG_LED_TRIGGERC, 10);
       continue;
@@ -276,12 +293,13 @@ void x3DListHandle(void const* argument) {
              !Trigger_Freeze_TIME.TB) {
       Trigger_Freeze_TIME.TB = SYS_CFG.TBfreeze;
       printf_SYSTEM(">>>System put Trigger B\n");
+			printf_SYSTEM("<<<3DH:%.2f\n", ans);
       if (MUTE_FLAG) osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERB, 10);
       osMessagePut(SIG_LEDHandle, SIG_LED_TRIGGERB, 10);
       continue;
     }
 
-    osDelay(10);
+    osDelay(20);
   }
 }
 
