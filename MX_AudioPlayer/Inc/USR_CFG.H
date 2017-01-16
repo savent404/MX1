@@ -12,13 +12,16 @@
 #define nTrigger_E 2    //设定Bank#文件夹下Trigger_E文件夹内允许最大文件数量
 
 ////以上配置，可设置范围1~16或1~32,看程序实现而定
-typedef enum {
+/*typedef enum {
     L_STATIC = 1,
     L_BREATHH = 2,
     L_SLOW_PLUSE = 3,
     L_MEDIUM_PLUSE = 4,
     L_FAST_PLUSE = 5
-}LMode;
+}LMode;*/
+#define LMode 1
+#define T_Breath 2000
+#define Lbright_Ldeep 10
 /*
 ##LMode，常规模式以及可设参项
 	  

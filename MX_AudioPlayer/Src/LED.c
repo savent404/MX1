@@ -1,5 +1,6 @@
 #include "LED.h"
 #include "DEBUG_CFG.h"
+#include "USR_CFG.h"
 #include "tx_cfg.h"
 extern struct config SYS_CFG;
 extern uint8_t sBANK;
@@ -64,9 +65,8 @@ void LEDHandle(void const *argument) {
         flag = 1;
     }
     if (evt.status != osEventMessage) continue;
-    printf_LED("LED message GET\n");
-
   TAG:
+    printf_LED("LED message GET\n");
 
     switch (evt.value.v) {
       case SIG_LED_INTORUN: {
@@ -77,8 +77,42 @@ void LEDHandle(void const *argument) {
                         0xFF * cnt / (SYS_CFG.TLon / 10), 1);
           osDelay(10);
         }
-        break;
-      }
+        switch (LMode) {
+          // STATIC
+          case 1: {
+          } break;
+          // Breath
+          case 2: {
+            uint16_t i;
+            while (1) {
+              for (i = T_Breath / 10; i > 0; i--) {
+                LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][0],
+                              i * 0xFF * 10 / T_Breath + Lbright_Ldeep, 1);
+                evt = osMessageGet(SIG_LEDHandle, 10);
+                if (evt.status == osEventMessage) goto TAG;
+              }
+              for (i = 0; i < T_Breath / 10; i++) {
+                LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][0],
+                              i * 0xFF * 10 / T_Breath + Lbright_Ldeep, 1);
+                evt = osMessageGet(SIG_LEDHandle, 10);
+                if (evt.status == osEventMessage) goto TAG;
+              }
+            }
+          } break;
+          // SLOW PLUSE & Mid PLUSE & FAST PLUSE
+          case 3:
+          case 4:
+          case 5: {
+            const delay_time[] = {
+              T_SP, T_MP, T_FP
+            };
+            srand(SysTick->VAL);
+            LED_COLOR_SET(RGB_PROFILE(sBANK + shift_bank)%nBank[0], rand()%(0xFF - Lbright_Ldeep) + Lbright_Ldeep, 1);
+            evt = osMessageGet(SIG_LEDHandle, delay_time[LMode - 3]);
+            if (evt.status == osEventMessage) goto TAG;
+          } break;
+        }
+      } break;
       case SIG_LED_OUTRUN: {
         uint16_t cnt;
         printf_LED("&LED\tGet mode ready message\n");
