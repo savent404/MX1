@@ -333,28 +333,38 @@ void x3DListHandle(void const* argument) {
     taskENTER_CRITICAL();
     Lis3dGetData(&data);
     taskEXIT_CRITICAL();
-		ans = 0;
-    ans = data.Dx * data.Dx;
-    ans += data.Dz * data.Dz;
-    ans = sqrt(ans);
-    ans = ans * 4 * 1024 * 2 / 0x10000;
 		{
-			const int BL = 13;
-			const float B[13] = {
-					-0.2014972568, -0.03798318282, -0.04050443694, -0.04287860543,  -0.0443976745,
-				 -0.04535318539,   0.9543836713, -0.04535318539,  -0.0443976745, -0.04287860543,
-				 -0.04050443694, -0.03798318282,  -0.2014972568
+			const int BL = 29;
+			const float B[29] = {
+				-0.0005303150392,-0.001419206616,-0.003114579478,-0.005866485182,-0.009925031103,
+				 -0.01545319334, -0.02247309685,  -0.0308240559, -0.04014447331, -0.04988448694,
+				 -0.05935066193, -0.06778119504, -0.07443830371,  -0.0787063539,   0.9198232889,
+					-0.0787063539, -0.07443830371, -0.06778119504, -0.05935066193, -0.04988448694,
+				 -0.04014447331,  -0.0308240559, -0.02247309685, -0.01545319334,-0.009925031103,
+				-0.005866485182,-0.003114579478,-0.001419206616,-0.0005303150392
 			};
 			static uint8_t pos = 0;
-			static float shift[13] = {0};
+			static float shift_x[29] = {0};
+      static float shift_y[29] = {0};
+      static float shift_z[29] = {0};
+			static float ave = 0;
+      float x = 0,y = 0, z = 0;
 			uint8_t i;
-			shift[pos] = ans;
-			ans = 0;
-			for (i = 0; i < BL; i++)
-				ans += B[i] * shift[(BL + pos - i)%BL];
+      shift_x[pos] = data.Dx * 4.0 * 1024 / 0x10000;
+      shift_y[pos] = data.Dy * 4.0 * 1024 / 0x10000;
+      shift_z[pos] = data.Dz * 4.0 * 1024 / 0x10000;
+      for (i = 0; i < BL; i++) {
+        x += B[i]*shift_x[(BL + pos - i)%BL];
+        y += B[i]*shift_y[(BL + pos - i)%BL];
+        z += B[i]*shift_z[(BL + pos - i)%BL];
+      }
+      ans = 0;
+      ans = x*x;
+      ans += z*z;
+      ans = sqrt(ans)*1024*1.3 - ave;
+			ave += ans;
 		}
-		ans += 100;
-		ans = ans > 0? ans : -ans;
+		ans = ans > 0 ? ans : -ans;
 		printf("%.2f\n", ans);
     // Trigger B
     if (SYS_CFG.Cl <= ans && SYS_CFG.Ch >= ans && !Trigger_Freeze_TIME.TC) {
@@ -376,7 +386,7 @@ void x3DListHandle(void const* argument) {
       continue;
     }
 
-    osDelay(20);
+    osDelay(100);
   }
 }
 
