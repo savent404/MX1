@@ -62,7 +62,7 @@
 #endif //DEBUG_KEY
 
 #ifndef DEBUG_SYSTEM
-#define DEBUG_SYSTEM 0
+#define DEBUG_SYSTEM 1
 #endif
 #if DEBUG_SYSTEM
 #define printf_SYSTEM printf

@@ -345,7 +345,6 @@ void x3DListHandle(void const* argument) {
 				 -0.01635932364, -0.01545907464, -0.01468616165, -0.01390230656,  -0.1034825444
 			};
 			static uint8_t pos = 0;
-			static uint8_t cnt = 0;
 			static float shift_x[35] = {0};
       static float shift_y[35] = {0};
       static float shift_z[35] = {0};
@@ -365,7 +364,6 @@ void x3DListHandle(void const* argument) {
       ans += z*z;
       ans = sqrt(ans)*5*1.3 - ave;
 			ave += ans;
-			if (cnt < BL) ans = 0, cnt++;
 		}
 		ans = ans > 0 ? ans : -ans;
     // Trigger B
