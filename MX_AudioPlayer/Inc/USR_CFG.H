@@ -19,7 +19,7 @@
     L_MEDIUM_PLUSE = 4,
     L_FAST_PLUSE = 5
 }LMode;*/
-#define LMode 1
+#define LMode 3
 #define T_Breath 2000
 #define Lbright_Ldeep 10
 /*

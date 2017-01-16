@@ -178,7 +178,7 @@
           <Type>0</Type>
           <LineNumber>381</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134248018</Address>
+          <Address>134248606</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -194,7 +194,7 @@
           <Type>0</Type>
           <LineNumber>445</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134249034</Address>
+          <Address>134249622</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -1046,7 +1046,7 @@
 
   <Group>
     <GroupName>Application/LED</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>

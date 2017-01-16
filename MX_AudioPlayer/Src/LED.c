@@ -85,31 +85,33 @@ void LEDHandle(void const *argument) {
           case 2: {
             uint16_t i;
             while (1) {
-              for (i = T_Breath / 10; i > 0; i--) {
+              for (i = T_Breath - 1; i > 0; i--) {
                 LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][0],
-                              i * 0xFF * 10 / T_Breath + Lbright_Ldeep, 1);
-                evt = osMessageGet(SIG_LEDHandle, 10);
+                              i * (0xFF-Lbright_Ldeep) / T_Breath + Lbright_Ldeep, 2);
+                evt = osMessageGet(SIG_LEDHandle, 1);
                 if (evt.status == osEventMessage) goto TAG;
               }
-              for (i = 0; i < T_Breath / 10; i++) {
+              for (i = 1; i < T_Breath - 1; i++) {
                 LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][0],
-                              i * 0xFF * 10 / T_Breath + Lbright_Ldeep, 1);
-                evt = osMessageGet(SIG_LEDHandle, 10);
+                              i * (0xFF-Lbright_Ldeep) / T_Breath + Lbright_Ldeep, 2);
+                evt = osMessageGet(SIG_LEDHandle, 1);
                 if (evt.status == osEventMessage) goto TAG;
               }
             }
-          } break;
+          }
           // SLOW PLUSE & Mid PLUSE & FAST PLUSE
           case 3:
           case 4:
           case 5: {
-            const delay_time[] = {
-              T_SP, T_MP, T_FP
+            const uint16_t delay_time[] = {
+              0,0,0,T_SP, T_MP, T_FP
             };
-            srand(SysTick->VAL);
-            LED_COLOR_SET(RGB_PROFILE(sBANK + shift_bank)%nBank[0], rand()%(0xFF - Lbright_Ldeep) + Lbright_Ldeep, 1);
-            evt = osMessageGet(SIG_LEDHandle, delay_time[LMode - 3]);
-            if (evt.status == osEventMessage) goto TAG;
+						while (1) {
+							srand(SysTick->VAL);
+							LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank)%nBank][0], rand()%(0xFF - Lbright_Ldeep) + Lbright_Ldeep, 1);
+							evt = osMessageGet(SIG_LEDHandle, delay_time[LMode]);
+							if (evt.status == osEventMessage) goto TAG;
+						}
           } break;
         }
       } break;
