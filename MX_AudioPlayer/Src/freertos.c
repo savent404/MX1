@@ -134,7 +134,7 @@ void MX_FREERTOS_Init(void) {
   DAC_CTLHandle = osThreadCreate(osThread(DAC_CTL), NULL);
 
   /* definition and creation of x3DList_CTL */
-  osThreadDef(x3DList_CTL, x3DListHandle, osPriorityNormal, 0, 128);
+  osThreadDef(x3DList_CTL, x3DListHandle, osPriorityNormal, 0, 256);
   x3DList_CTLHandle = osThreadCreate(osThread(x3DList_CTL), NULL);
 
   /* definition and creation of LED_CTL */

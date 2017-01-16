@@ -28,8 +28,8 @@ static void SPI1_Init(void)
 
 void Lis3d_Init(void)
 {
-  LIS3DH_SPI_WR(0x23, 0xC8); //+/- 2g,4线spi
-  LIS3DH_SPI_WR(0x20, 0x47); //50hz Low power mode,XYZ axis enabled
+  LIS3DH_SPI_WR(0x23, 0xD8); //+/- 4g,4线spi
+  LIS3DH_SPI_WR(0x20, 0x57); //50hz Low power mode,XYZ axis enabled
   LIS3DH_SPI_WR(0x24, 0x04); //打开6轴
 
   LIS3DH_SPI_WR(0x21, 0x05); //High pass filter enabled for CLICK and AOI1
@@ -122,7 +122,7 @@ void Lis3dGetData(Lis3dData *p)
 	(*p).Dz = Data3D.Dz;
 }
 
-char Lis3dCouter(Lis3dData *data)
+/*char Lis3dCouter(Lis3dData *data)
 {
   static uint16_t caonima[5] = {0};
   static uint16_t avarage[3] = {0};
@@ -179,4 +179,4 @@ char Lis3dCouter(Lis3dData *data)
     }
   }
   return 0;
-}
+}*/
