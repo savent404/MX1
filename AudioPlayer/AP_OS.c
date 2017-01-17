@@ -44,7 +44,9 @@
 #include "USR_CFG.h"
 #include "stdlib.h"
 #include "DEBUG_CFG.h"
+#include <stm32f1xx_hal.h>
 #include <stdint.h>
+#include "tx_cfg.h"
 /* When System from Close into Ready */
 const uint8_t SIG_AUDIO_STARTUP = 0x10;
 /* When System from Ready into Close */
@@ -82,6 +84,8 @@ static uint16_t audio_buf1[osFIFO_NUM][osFIFO_SIZE],
 static FRESULT fres;
 static DIR fdir;
 static FILINFO finfo;
+static void Noise(uint8_t level);
+extern struct config SYS_CFG;
 
 __inline __weak uint16_t convert_single(uint16_t src) {
   return ((src + 0x7FFF) >> 4);
@@ -445,10 +449,10 @@ void WAVHandle(void const* argument) {
               printf_RANDOMFILE("#Get from running into ready message\n");
               // close hum.wav
               CRITICAL_FUNC(fres = f_close(&file_2));
-              
-							printf_FATFS("FATFS:a file:[0:/Bank%d/hum.wav] closed:%d",
-													 sBANK + 1, fres);
-							loop_flag = 0;
+
+              printf_FATFS("FATFS:a file:[0:/Bank%d/hum.wav] closed:%d",
+                           sBANK + 1, fres);
+              loop_flag = 0;
             } break;
             case SIG_AUDIO_TRIGGERB: {
               printf_RANDOMFILE("#Get Triiger B\n");
@@ -798,9 +802,7 @@ void DACHandle(void const* argument) {
       if (flag == stopped) continue;
       printf_DACDMA("Stop DMA\n");
       flag = stopped;
-      HAL_GPIO_WritePin(Audio_Soft_EN_GPIO_Port, Audio_Soft_EN_Pin,
-                        GPIO_PIN_RESET);
-      HAL_GPIO_WritePin(Audio_EN_GPIO_Port, Audio_EN_Pin, GPIO_PIN_RESET);
+      Noise(0);
       continue;
     }
 
@@ -816,9 +818,7 @@ void DACHandle(void const* argument) {
         printf_DACDMA("Start DMA\n");
         flag = running;
         HAL_TIM_Base_Start(&htim2);
-        HAL_GPIO_WritePin(Audio_EN_GPIO_Port, Audio_EN_Pin, GPIO_PIN_SET);
-        HAL_GPIO_WritePin(Audio_Soft_EN_GPIO_Port, Audio_Soft_EN_Pin,
-                          GPIO_PIN_SET);
+        Noise(SYS_CFG.Vol);
         HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*)evt.value.p,
                           osFIFO_SIZE, DAC_ALIGN_12B_R);
         osSemaphoreWait(DMA_FLAGHandle, osWaitForever);
@@ -828,4 +828,38 @@ void DACHandle(void const* argument) {
 }
 void HAL_DAC_ConvCpltCallbackCh1(DAC_HandleTypeDef* hdac) {
   osSemaphoreRelease(DMA_FLAGHandle);
+}
+
+static void Noise(uint8_t level) {
+  GPIO_InitTypeDef GPIOx;
+
+  switch (level) {
+    case 0: {
+      HAL_GPIO_WritePin(Audio_EN_GPIO_Port, Audio_EN_Pin, GPIO_PIN_RESET);
+    } break;
+    case 1: {
+      GPIOx.Pin = Audio_Soft_EN_Pin;
+      GPIOx.Mode = GPIO_MODE_OUTPUT_PP;
+      GPIOx.Speed = GPIO_SPEED_FREQ_LOW;
+      HAL_GPIO_Init(Audio_Soft_EN_GPIO_Port, &GPIOx);
+      HAL_GPIO_WritePin(Audio_Soft_EN_GPIO_Port, Audio_Soft_EN_Pin, GPIO_PIN_RESET);
+      HAL_GPIO_WritePin(Audio_EN_GPIO_Port, Audio_EN_Pin, GPIO_PIN_SET);
+    } break;
+    case 2: {
+      GPIOx.Pin = Audio_Soft_EN_Pin;
+      GPIOx.Mode = GPIO_MODE_OUTPUT_OD;
+      GPIOx.Speed = GPIO_SPEED_FREQ_LOW;
+      HAL_GPIO_Init(Audio_Soft_EN_GPIO_Port, &GPIOx);
+      HAL_GPIO_WritePin(Audio_Soft_EN_GPIO_Port, Audio_Soft_EN_Pin, GPIO_PIN_SET);
+      HAL_GPIO_WritePin(Audio_EN_GPIO_Port, Audio_EN_Pin, GPIO_PIN_SET);
+    } break;
+    case 3: {
+      GPIOx.Pin = Audio_Soft_EN_Pin;
+      GPIOx.Mode = GPIO_MODE_OUTPUT_PP;
+      GPIOx.Speed = GPIO_SPEED_FREQ_LOW;
+      HAL_GPIO_Init(Audio_Soft_EN_GPIO_Port, &GPIOx);
+      HAL_GPIO_WritePin(Audio_Soft_EN_GPIO_Port, Audio_Soft_EN_Pin, GPIO_PIN_SET);
+      HAL_GPIO_WritePin(Audio_EN_GPIO_Port, Audio_EN_Pin, GPIO_PIN_SET);
+    } break;
+  }
 }
