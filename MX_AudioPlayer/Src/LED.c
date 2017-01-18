@@ -39,9 +39,13 @@ const uint8_t SIG_LED_CHARGEB = 0xEE;
 
 const uint8_t SIG_LED_SWITCHBANK = 0x60;
 
+static uint8_t shift_bank = 0;
+static int multi_trigger_func(uint32_t mode);
+
+
 void LEDHandle(void const *argument) {
   osEvent evt;
-  static uint8_t shift_bank = 0;
+  
   enum { IN_TRIGGER_E, OUT_TRIGGER_E } trigger_e = OUT_TRIGGER_E;
 	uint8_t Normal_Mode_STACK = 0;
 	uint8_t Normal_Mode_STACK_ENABLE = 0;
@@ -143,37 +147,42 @@ void LEDHandle(void const *argument) {
       }
       case SIG_LED_TRIGGERB: {
         printf_LED("&LED\tGet trigger B message\n");
-        printf_LED("&No oprat should do\n");
+        // printf_LED("&No oprat should do\n");
+        multi_trigger_func(SYS_CFG.TBMode);
         break;
       }
       case SIG_LED_TRIGGERC: {
-        uint8_t cycle;
+        // uint8_t cycle;
         printf_LED("&LED\tGet trigger C message\n");
-        cycle = nSparkCount /*SYS_CFG.Ccount*/ - 1;
-        while (cycle--) {
-          LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][1], 0xFF, 1);
-          osDelay(T_Spark /*SYS_CFG.TCflip*/);
-          LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][0], 0xFF, 1);
-          osDelay(T_nSparkGap /*SYS_CFG.TCflip*/);
-        }
-        LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][1], 0xFF, 1);
-        osDelay(T_Spark /*SYS_CFG.TCflip*/);
-        LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][0], 0xFF, 1);
+        // cycle = nSparkCount /*SYS_CFG.Ccount*/ - 1;
+        // while (cycle--) {
+        //   LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][1], 0xFF, 1);
+        //   osDelay(T_Spark /*SYS_CFG.TCflip*/);
+        //   LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][0], 0xFF, 1);
+        //   osDelay(T_nSparkGap /*SYS_CFG.TCflip*/);
+        // }
+        // LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][1], 0xFF, 1);
+        // osDelay(T_Spark /*SYS_CFG.TCflip*/);
+        // LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][0], 0xFF, 1);
+        multi_trigger_func(SYS_CFG.TCMode);
         break;
       }
       case SIG_LED_TRIGGERD: {
         printf_LED("&LED\tGet trigger D message\n");
-        LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][1], 0xFF, 1);
-        osDelay(T_Spark /*SYS_CFG.TDflip*/);
-        LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][0], 0xFF, 1);
+        // LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][1], 0xFF, 1);
+        // osDelay(T_Spark /*SYS_CFG.TDflip*/);
+        // LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][0], 0xFF, 1);
+        multi_trigger_func(SYS_CFG.TDMode);
         break;
       }
       case SIG_LED_TRIGGERE: {
         printf_LED("&LED\tGet trigger E on message\n");
-        LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][1], 0xFF, 1);
-        trigger_e = IN_TRIGGER_E;
-        flag = 0;
-        break;
+				if (multi_trigger_func(SYS_CFG.TEMode)) {
+					LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][1], 0xFF, 1);
+					trigger_e = IN_TRIGGER_E;
+					flag = 0;
+					break;
+				} break;
       }
       case SIG_LED_TRIGGEREOFF: {
         printf_LED("&LED\tGet trigger E off message\n");
@@ -286,4 +295,39 @@ void Simple_LED_Opt(void) {
                     (GPIO_PinState)SL[sBANK][cnt].LED4);
   cnt += 1;
   cnt %= SLS[sBANK];
+}
+
+static int multi_trigger_func(uint32_t mode) {
+  // get rand trigger mode
+  uint8_t seed = rand()%3;
+  uint8_t _mode = mode << seed;
+  uint8_t temp = 1;
+  uint8_t real_mode = 1;
+  while (!(temp & _mode)) {
+    temp *= 2;
+    real_mode += 1;
+  }
+  real_mode %= 3;
+  real_mode += 1;
+  switch (real_mode) {
+    case 1:
+      break;
+    case 2:
+      LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][1], 0xFF, 1);
+      osDelay(T_Spark /*SYS_CFG.TDflip*/);
+      LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][0], 0xFF, 1);
+      break;
+    case 3:{
+      uint32_t cnt = nSparkCount;
+      while (cnt--) {
+        LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][1], 0xFF, 1);
+        osDelay(T_Spark /*SYS_CFG.TDflip*/);
+        LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][0], 0xFF, 1);
+        osDelay(T_nSparkGap);
+      }
+		} break;
+		case 4:
+			return 1;
+  }
+	return 0;
 }
