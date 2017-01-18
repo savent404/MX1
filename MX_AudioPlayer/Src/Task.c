@@ -343,15 +343,12 @@ void x3DListHandle(void const* argument) {
 	static float shift_x[35] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	static float shift_y[35] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	static float shift_z[35] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-	static float ave = 0;
 		
-	osDelay(5000);
 	memset(shift_x, 0, BL *sizeof(float));
 	memset(shift_y, 0, BL *sizeof(float));
 	memset(shift_z, 0, BL *sizeof(float));
 	ans = 0;
 	pos = 0;
-	ave = 0;
 	x=0,y=0,z=0;
 	i = 0;
   taskENTER_CRITICAL();
@@ -395,7 +392,7 @@ void x3DListHandle(void const* argument) {
       continue;
     }
     // Trigger C
-    else if (SYS_CFG.S1 <= ans && SYS_CFG.Sh >= ans &&
+    else if (SYS_CFG.Sl <= ans && SYS_CFG.Sh >= ans &&
              !Trigger_Freeze_TIME.TB) {
       Trigger_Freeze_TIME.TB = SYS_CFG.TBfreeze;
       printf_SYSTEM(">>>System put Trigger B\n");
@@ -408,6 +405,13 @@ void x3DListHandle(void const* argument) {
 }
 
 void TriggerFreez(void const* argument) {
+	static int cnt = 0;
+	extern Simple_LED_T SLT[nBank];
+	if (++cnt > SLT[sBANK] / 10) {
+		Simple_LED_Opt();
+		cnt = 0;
+	}
+	
   if (Trigger_Freeze_TIME.TB > 10)
     Trigger_Freeze_TIME.TB -= 10;
   else if (Trigger_Freeze_TIME.TB > 0)
