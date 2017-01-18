@@ -72,7 +72,13 @@ void MX_FREERTOS_Init(void);
 FATFS fs;
 FRESULT res;
 struct config SYS_CFG;
+
+/* LED public var */
+Simple_LED SL[nBank][256];
+Simple_LED_T SLT[nBank];
+Simple_LED_STEP SLS[nBank];
 RGBL RGB_PROFILE[16][2];
+
 uint32_t i;
 
 static uint8_t parameter_check(struct config p) {
@@ -130,8 +136,46 @@ int main(void)
 		HAL_Delay(5000);
 	}
 	TX_CFG(&SYS_CFG,RGB_PROFILE);
+	
+	// Read Accent structure;
+	{
+		uint8_t Bank_num = 0;
+		FIL     file;
+		char    path[20];
+		char    para_buf[20];
+		char*   spt;
+		for (Bank_num = 0; Bank_num < nBank; Bank_num++) {
+			sprintf(path, "0:/Bank%d/Accent.txt", Bank_num + 1);
+			res = f_open(&file, path, FA_READ);
+			if (res != FR_OK) break;
+			//Read Parameter
+			{
+				uint8_t cnt = 0;
+				spt = f_gets(para_buf, sizeof(para_buf), &file);
+				if (spt==0) {res = FR_INVALID_OBJECT; break;}
+				sscanf(spt, "T=%d", &SLT[Bank_num]);
+				while (1) {
+					
+					int para;
+					f_gets(para_buf, sizeof(para_buf), &file);
+					if (spt==0 || *spt==0){
+						SLS[Bank_num] = cnt + 1;
+						break;
+					}
+					sscanf(spt, "%d", &para);
+					SL[Bank_num][cnt].LED1 = (para%10000)/1000;
+					SL[Bank_num][cnt].LED2 = (para%1000)/100;
+					SL[Bank_num][cnt].LED3 = (para%100)/10;
+					SL[Bank_num][cnt].LED4 = (para%10);
+					cnt++;
+				}
+			}
+			f_close(&file);
+		}
+		
+	}
 	// Parameter check
-	if (parameter_check(SYS_CFG))
+	if (parameter_check(SYS_CFG) || res != FR_OK)
 	{
 		uint8_t cnt = 2;
 		HAL_GPIO_WritePin(Power_EN_GPIO_Port, Power_EN_Pin, GPIO_PIN_SET);

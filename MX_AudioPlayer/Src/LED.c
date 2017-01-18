@@ -114,7 +114,7 @@ void LEDHandle(void const *argument) {
 						}
           } break;
         }
-      } break;
+      }
       case SIG_LED_OUTRUN: {
         uint16_t cnt;
         printf_LED("&LED\tGet mode ready message\n");
@@ -260,4 +260,19 @@ void LED_COLOR_SET(RGBL data, uint8_t DC, uint8_t mode) {
     TIM1->CCR3 = (uint32_t)data.B * DC / 0xFF / 2;
     TIM1->CCR4 = (uint32_t)data.L * DC / 0xFF / 2;
   }
+}
+
+void Simple_LED_Opt(void) {
+	extern Simple_LED SL[nBank][256];
+	extern Simple_LED_T SLT[nBank];
+	extern Simple_LED_STEP SLS[nBank];
+	extern uint8_t sBANK;
+	static Simple_LED_STEP cnt = 0;
+	
+	HAL_GPIO_WritePin(LED5_GPIO_Port, LED5_Pin, (GPIO_PinState)SL[sBANK][cnt].LED1);
+	HAL_GPIO_WritePin(LED6_GPIO_Port, LED5_Pin, (GPIO_PinState)SL[sBANK][cnt].LED2);
+	HAL_GPIO_WritePin(LED7_GPIO_Port, LED7_Pin, (GPIO_PinState)SL[sBANK][cnt].LED3);
+	HAL_GPIO_WritePin(LED8_GPIO_Port, LED8_Pin, (GPIO_PinState)SL[sBANK][cnt].LED4);
+	cnt += 1;
+	cnt %= SLS[sBANK];
 }

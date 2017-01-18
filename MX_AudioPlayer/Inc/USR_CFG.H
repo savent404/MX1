@@ -36,12 +36,12 @@
 #define T_FP 75		  //快速脉冲模式，亮度变化周期，单位ms
 
 
-typedef enum {
+/*typedef enum {
     TL_STATIC = 1,
     TL_SPARK = 2,
     TL_nSPARK = 3,
     TL_ELECTRICL = 4
-}TriggerLMode;
+}TriggerLMode;*/
 /*
 ##TriggerLMode，触发模式以及可设参项
 
@@ -50,6 +50,7 @@ typedef enum {
 		  //3=nSPARK  n闪，将当前BANK翻转为FBANK nSparkCount次，单次时长为T_nSpark,间隔时间为T_nSparkGap
 		  //4=ELECTRICL 持续闪烁   BANK与FBANK交替变化，单次保持时长为T_Electricl，亮度变化范围为Lbright至Lbright-Ldeep，
 */
+#define TriggerLMode 1
 
 #define T_Spark 200
 #define nSparkCount 2
