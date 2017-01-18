@@ -50,5 +50,14 @@ typedef struct {
   int L;
 }RGBL;
 
+typedef struct {
+	uint8_t LED1:1;
+	uint8_t LED2:1;
+	uint8_t LED3:1;
+	uint8_t LED4:1;
+}Simple_LED;
+typedef int Simple_LED_T;
+typedef int Simple_LED_STEP;
 void LED_COLOR_SET(RGBL data, uint8_t DC, uint8_t mode);
+void Simple_LED_Opt(void);
 #endif
