@@ -318,42 +318,56 @@ void Handle_GPIO(void const* argument) {
     osDelay(3);
   }
 }
+
+
+
+
+
 void x3DListHandle(void const* argument) {
   Lis3dData data;
-  float ans;
+
+	float x = 0,y = 0, z = 0;
+	uint8_t i = 0;
+	static float ans;
+	static const int BL = 35;
+	static const float B[35] = {
+			-0.1034825444, -0.01390230656, -0.01468616165, -0.01545907464, -0.01635932364,
+		 -0.01707814261, -0.01778350584,    -0.01848986, -0.01912000403, -0.01971540041,
+		 -0.02018627338, -0.02066230215, -0.02102502622, -0.02138603106, -0.02160620317,
+		 -0.02182896435, -0.02191580646,   0.9780050516, -0.02191580646, -0.02182896435,
+		 -0.02160620317, -0.02138603106, -0.02102502622, -0.02066230215, -0.02018627338,
+		 -0.01971540041, -0.01912000403,    -0.01848986, -0.01778350584, -0.01707814261,
+		 -0.01635932364, -0.01545907464, -0.01468616165, -0.01390230656,  -0.1034825444
+	};
+	static uint8_t pos = 0;
+	static float shift_x[35] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	static float shift_y[35] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	static float shift_z[35] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	static float ave = 0;
+		
+	osDelay(5000);
+	memset(shift_x, 0, BL *sizeof(float));
+	memset(shift_y, 0, BL *sizeof(float));
+	memset(shift_z, 0, BL *sizeof(float));
+	ans = 0;
+	pos = 0;
+	ave = 0;
+	x=0,y=0,z=0;
+	i = 0;
   taskENTER_CRITICAL();
   Lis3d_Init();
   taskEXIT_CRITICAL();
   for (;;) {
-    if (System_Status != SYS_running) {
-      osDelay(50);
-      continue;
-    }
-
     taskENTER_CRITICAL();
     Lis3dGetData(&data);
-    taskEXIT_CRITICAL();
-		{
-			const int BL = 35;
-			const float B[35] = {
-					-0.1034825444, -0.01390230656, -0.01468616165, -0.01545907464, -0.01635932364,
-				 -0.01707814261, -0.01778350584,    -0.01848986, -0.01912000403, -0.01971540041,
-				 -0.02018627338, -0.02066230215, -0.02102502622, -0.02138603106, -0.02160620317,
-				 -0.02182896435, -0.02191580646,   0.9780050516, -0.02191580646, -0.02182896435,
-				 -0.02160620317, -0.02138603106, -0.02102502622, -0.02066230215, -0.02018627338,
-				 -0.01971540041, -0.01912000403,    -0.01848986, -0.01778350584, -0.01707814261,
-				 -0.01635932364, -0.01545907464, -0.01468616165, -0.01390230656,  -0.1034825444
-			};
-			static uint8_t pos = 0;
-			static float shift_x[35] = {0};
-      static float shift_y[35] = {0};
-      static float shift_z[35] = {0};
-			static float ave = 0;
-      float x = 0,y = 0, z = 0;
-			uint8_t i;
-      shift_x[pos] = data.Dx * 4.0 * 1024 / 0x10000;
-      shift_y[pos] = data.Dy * 4.0 * 1024 / 0x10000;
-      shift_z[pos] = data.Dz * 4.0 * 1024 / 0x10000;
+
+			
+      shift_x[pos] = data.Dx * 1.0 * 1024 / 0x10000;
+      shift_y[pos] = data.Dy * 1.0 * 1024 / 0x10000;
+      shift_z[pos] = data.Dz * 1.0 * 1024 / 0x10000;
+			x = 0;
+			y = 0;
+			z = 0;
       for (i = 0; i < BL; i++) {
         x += B[i]*shift_x[(BL + pos - i)%BL];
         y += B[i]*shift_y[(BL + pos - i)%BL];
@@ -362,10 +376,15 @@ void x3DListHandle(void const* argument) {
       ans = 0;
       ans = x*x;
       ans += z*z;
-      ans = sqrt(ans)*5*1.3 - ave;
-			ave += ans;
-		}
+      ans = sqrt(ans);
+			pos += 1;
+			pos %= BL;
 		ans = ans > 0 ? ans : -ans;
+		taskEXIT_CRITICAL();
+		osDelay(20);
+		if (System_Status != SYS_running) {
+      continue;
+    }
     // Trigger B
     if (SYS_CFG.Cl <= ans && SYS_CFG.Ch >= ans && !Trigger_Freeze_TIME.TC) {
       Trigger_Freeze_TIME.TC = SYS_CFG.TCfreeze;
@@ -385,8 +404,6 @@ void x3DListHandle(void const* argument) {
       osMessagePut(SIG_LEDHandle, SIG_LED_TRIGGERB, 10);
       continue;
     }
-
-    osDelay(20);
   }
 }
 

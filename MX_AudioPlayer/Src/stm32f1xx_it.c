@@ -38,6 +38,8 @@
 
 /* USER CODE BEGIN 0 */
 #include "stdio.h"
+#include "tim.h"
+#include "dac.h"
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -68,7 +70,17 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
+	extern uint16_t static_wav[22001];
 	printf("HardFualt....\n");
+	{
+		HAL_GPIO_WritePin(Power_EN_GPIO_Port, Power_EN_Pin, GPIO_PIN_SET);
+		HAL_TIM_Base_Start(&htim2);
+		HAL_GPIO_WritePin(Audio_EN_GPIO_Port, Audio_EN_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(Audio_Soft_EN_GPIO_Port, Audio_Soft_EN_Pin,
+		GPIO_PIN_SET);
+		HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*)static_wav,
+		22001, DAC_ALIGN_12B_R);
+	}
   /* USER CODE END HardFault_IRQn 0 */
   while (1)
   {

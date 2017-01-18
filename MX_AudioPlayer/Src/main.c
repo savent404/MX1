@@ -155,6 +155,7 @@ int main(void)
 	while (HAL_GPIO_ReadPin(Power_KEY_GPIO_Port, Power_KEY_Pin)){
 		;
 	}
+	
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */
