@@ -83,7 +83,7 @@ void LEDHandle(void const *argument) {
 				Normal_Mode_STACK_ENABLE = 1;
 				Normal_Mode_STACK = 1;
         
-        switch (_LMode) {
+        switch (SYS_CFG.LMode) {
           // STATIC
           case 1: {
 						uint16_t cnt;
@@ -100,14 +100,14 @@ void LEDHandle(void const *argument) {
               for (i = T_Breath - 1; i > 0; i--) {
                 LED_COLOR_SET(
                     RGB_PROFILE[(sBANK + shift_bank) % nBank][0],
-                    i * (0xFF - Lbright_Ldeep) / T_Breath + Lbright_Ldeep, 1);
+                    i * (0xFF - (SYS_CFG.Lbright - SYS_CFG.Ldeep)) / T_Breath + (SYS_CFG.Lbright - SYS_CFG.Ldeep), 1);
                 evt = osMessageGet(SIG_LEDHandle, 1);
                 if (evt.status == osEventMessage) goto TAG;
               }
               for (i = 1; i < T_Breath - 1; i++) {
                 LED_COLOR_SET(
                     RGB_PROFILE[(sBANK + shift_bank) % nBank][0],
-                    i * (0xFF - Lbright_Ldeep) / T_Breath + Lbright_Ldeep, 1);
+                    i * (0xFF - (SYS_CFG.Lbright - SYS_CFG.Ldeep)) / T_Breath + (SYS_CFG.Lbright - SYS_CFG.Ldeep), 1);
                 evt = osMessageGet(SIG_LEDHandle, 1);
                 if (evt.status == osEventMessage) goto TAG;
               }
@@ -121,7 +121,7 @@ void LEDHandle(void const *argument) {
             while (1) {
               srand(SysTick->VAL);
               LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][0],
-                            rand() % (0xFF - Lbright_Ldeep) + Lbright_Ldeep, 1);
+                            rand() % (0xFF - (SYS_CFG.Lbright - SYS_CFG.Ldeep)) + (SYS_CFG.Lbright - SYS_CFG.Ldeep), 1);
               evt = osMessageGet(SIG_LEDHandle, delay_time[_LMode]);
               if (evt.status == osEventMessage) goto TAG;
             }
