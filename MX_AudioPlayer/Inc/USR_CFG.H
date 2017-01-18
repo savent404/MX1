@@ -19,8 +19,8 @@
     L_MEDIUM_PLUSE = 4,
     L_FAST_PLUSE = 5
 }_LMode;*/
-#define _LMode 3
-#define T_Breath 2000
+#define _LMode 2
+#define T_Breath (2000/2)
 #define Lbright_Ldeep 10
 /*
 ##_LMode，常规模式以及可设参项
