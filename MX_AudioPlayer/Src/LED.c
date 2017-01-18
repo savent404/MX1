@@ -54,7 +54,7 @@ void LEDHandle(void const *argument) {
     if (trigger_e == OUT_TRIGGER_E) {
       evt = osMessageGet(SIG_LEDHandle, osWaitForever);
     } else {
-      evt = osMessageGet(SIG_LEDHandle, SYS_CFG.Ecycle / 2);
+      evt = osMessageGet(SIG_LEDHandle, T_Electricl/2/*SYS_CFG.Ecycle / 2*/);
     }
     if (trigger_e == IN_TRIGGER_E) {
       LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][flag], 0xFF, 1);
@@ -77,7 +77,7 @@ void LEDHandle(void const *argument) {
                         0xFF * cnt / (SYS_CFG.TLon / 10), 1);
           osDelay(10);
         }
-        switch (LMode) {
+        switch (_LMode) {
           // STATIC
           case 1: {
           } break;
@@ -109,7 +109,7 @@ void LEDHandle(void const *argument) {
 						while (1) {
 							srand(SysTick->VAL);
 							LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank)%nBank][0], rand()%(0xFF - Lbright_Ldeep) + Lbright_Ldeep, 1);
-							evt = osMessageGet(SIG_LEDHandle, delay_time[LMode]);
+							evt = osMessageGet(SIG_LEDHandle, delay_time[_LMode]);
 							if (evt.status == osEventMessage) goto TAG;
 						}
           } break;
@@ -134,22 +134,22 @@ void LEDHandle(void const *argument) {
       case SIG_LED_TRIGGERC: {
         uint8_t cycle;
         printf_LED("&LED\tGet trigger C message\n");
-        cycle = SYS_CFG.Ccount - 1;
+        cycle = nSparkCount/*SYS_CFG.Ccount*/ - 1;
         while (cycle--) {
           LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][1], 0xFF, 1);
-          osDelay(SYS_CFG.TCflip);
+          osDelay(T_Spark/*SYS_CFG.TCflip*/);
           LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][0], 0xFF, 1);
-          osDelay(SYS_CFG.TCflip);
+          osDelay(T_nSparkGap/*SYS_CFG.TCflip*/);
         }
         LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][1], 0xFF, 1);
-        osDelay(SYS_CFG.TCflip);
+        osDelay(T_Spark/*SYS_CFG.TCflip*/);
         LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][0], 0xFF, 1);
         break;
       }
       case SIG_LED_TRIGGERD: {
         printf_LED("&LED\tGet trigger D message\n");
         LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][1], 0xFF, 1);
-        osDelay(SYS_CFG.TDflip);
+        osDelay(T_Spark/*SYS_CFG.TDflip*/);
         LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][0], 0xFF, 1);
         break;
       }

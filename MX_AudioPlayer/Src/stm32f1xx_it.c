@@ -79,7 +79,7 @@ void HardFault_Handler(void)
 		HAL_GPIO_WritePin(Audio_Soft_EN_GPIO_Port, Audio_Soft_EN_Pin,
 		GPIO_PIN_SET);
 		HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*)static_wav,
-		22001, DAC_ALIGN_12B_R);
+		2200, DAC_ALIGN_12B_R);
 	}
   /* USER CODE END HardFault_IRQn 0 */
   while (1)

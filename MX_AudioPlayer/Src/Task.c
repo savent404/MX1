@@ -392,7 +392,7 @@ void x3DListHandle(void const* argument) {
       continue;
     }
     // Trigger C
-    else if (SYS_CFG.S1 <= ans && SYS_CFG.Sh >= ans &&
+    else if (SYS_CFG.Sl <= ans && SYS_CFG.Sh >= ans &&
              !Trigger_Freeze_TIME.TB) {
       Trigger_Freeze_TIME.TB = SYS_CFG.TBfreeze;
       printf_SYSTEM(">>>System put Trigger B\n");

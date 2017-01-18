@@ -18,12 +18,12 @@
     L_SLOW_PLUSE = 3,
     L_MEDIUM_PLUSE = 4,
     L_FAST_PLUSE = 5
-}LMode;*/
-#define LMode 3
+}_LMode;*/
+#define _LMode 3
 #define T_Breath 2000
 #define Lbright_Ldeep 10
 /*
-##LMode，常规模式以及可设参项
+##_LMode，常规模式以及可设参项
 	  
 		  //1=STATIC  静止 保持亮度不变化
 		  //2=BREATH  呼吸 以T_Breath为周期，Lbright-Ldeep为下限，亮度近似正弦周期性变化

@@ -82,10 +82,10 @@ RGBL RGB_PROFILE[16][2];
 uint32_t i;
 
 static uint8_t parameter_check(struct config p) {
-  if (p.Vol > 3 || p.Bank > nBank || p.Lbright > 1023 || p.S1 > 1023 ||
-      p.Sh > 1023 || p.Cl > 1023 || p.Ch > 1023)
-    return 1;
-  else
+//  if (p.Vol > 3 || p.Bank > nBank || p.Lbright > 1023 || p.S1 > 1023 ||
+//      p.Sh > 1023 || p.Cl > 1023 || p.Ch > 1023)
+//    return 1;
+//  else
     return 0;
 }
 /* USER CODE END 0 */
