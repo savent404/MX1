@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 #ifndef DEBUG_FATFS
-#define DEBUG_FATFS 1
+#define DEBUG_FATFS 0
 #endif
 #if DEBUG_FATFS
 #define printf_FATFS printf
@@ -14,7 +14,7 @@
 
 
 #ifndef DEBUG_DACDMA
-#define DEBUG_DACDMA 1
+#define DEBUG_DACDMA 0
 #endif
 #if DEBUG_DACDMA
 #define printf_DACDMA printf
@@ -24,7 +24,7 @@
 
 
 #ifndef DEBUG_AUDIOMESSAGE
-#define DEBUG_AUDIOMESSAGE 1
+#define DEBUG_AUDIOMESSAGE 0
 #endif
 #if DEBUG_AUDIOMESSAGE
 #define printf_AUDIOMESSAGE printf
@@ -34,7 +34,7 @@
 
 
 #ifndef DEBUG_TRIGGERFREEZ
-#define DEBUG_TRIGGERFREEZ 1
+#define DEBUG_TRIGGERFREEZ 0
 #endif
 #if DEBUG_TRIGGERFREEZ
 #define printf_TRIGGERFREEZ printf
@@ -44,7 +44,7 @@
 
 
 #ifndef DEBUG_RANDOMFILE
-#define DEBUG_RANDOMFILE 1
+#define DEBUG_RANDOMFILE 0
 #endif
 #if DEBUG_RANDOMFILE
 #define printf_RANDOMFILE printf
@@ -53,7 +53,7 @@
 #endif //DEBUG_RANDOMFILE
 
 #ifndef DEBUG_KEY
-#define DEBUG_KEY 1
+#define DEBUG_KEY 0
 #endif
 #if DEBUG_KEY
 #define printf_KEY printf
@@ -72,7 +72,7 @@
 
 
 #ifndef DEBUG_LED
-#define DEBUG_LED 1
+#define DEBUG_LED 0
 #endif
 #if DEBUG_LED
 #define printf_LED printf

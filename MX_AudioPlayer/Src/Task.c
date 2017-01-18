@@ -11,6 +11,7 @@
 #include "USR_CFG.h"
 #include "DEBUG_CFG.h"
 #include "LED.h"
+#include "adc.h"
 extern struct config SYS_CFG;
 extern RGBL RGB_PROFILE[16][2];
 
@@ -38,12 +39,32 @@ __IO enum { SYS_close, SYS_ready, SYS_running } System_Status = SYS_close;
 
 /* Bank now */
 __IO uint8_t sBANK = 0;
+/* Mute flag */
 uint8_t MUTE_FLAG = 0;
+/* Charging flag */
+uint8_t CHARGE_FLAG = 0;
+/* Charge complete flag */
+uint8_t CC_FLAG = 0;
 
 void Handle_System(void const* argument) {
   uint32_t cnt;
   osEvent evt;
+  float power_voltag = 0;
   extern struct config SYS_CFG;
+	//SD card Parameter error check
+	
+	// ADC check Power voltag
+  HAL_ADCEx_Calibration_Start(&hadc1);
+  HAL_ADC_Start(&hadc1);
+  HAL_ADC_PollForConversion(&hadc1, 1);
+  power_voltag = HAL_ADC_GetValue(&hadc1);
+  power_voltag = power_voltag * 3.3 / 4096.0;
+
+  if (power_voltag <= LOWPOWER_VOLTAG && power_voltag >= RESTART_VOLTAG) {
+    printf_SYSTEM(">>>System put lowPower message\n");
+    printf_SYSTEM("Power voltag:%.2fV\n", power_voltag);
+    osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_LOWPOWER, osWaitForever);
+  }
   printf_SYSTEM(">>>System in ready mode\n");
   if (HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin) == GPIO_PIN_SET) MUTE_FLAG = 1;
   System_Status = SYS_ready;
@@ -56,7 +77,62 @@ void Handle_System(void const* argument) {
     osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_STARTUP, PUT_MESSAGE_WAV_TIMEOUT);
   while (1) {
     evt = osMessageGet(SIG_GPIOHandle, 10);
+    if (power_voltag < 1.70) {
+      printf(">>>System restart :%.2fV\n", power_voltag);
+      osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_RESTART, osWaitForever);
+      osDelay(osWaitForever);
+    }  // end of restart
+    power_voltag = HAL_ADC_GetValue(&hadc1);
+    power_voltag = power_voltag * 3.3 / 4096.0;
 
+    // Charge check
+    if (HAL_GPIO_ReadPin(Charge_Check_GPIO_Port, Charge_Check_Pin) ==
+            GPIO_PIN_SET &&
+        !CHARGE_FLAG) {
+      osMessagePut(SIG_LEDHandle, SIG_LED_CHARGEA, PUT_MESSAGE_LED_TIMEOUT);
+      if (System_Status == SYS_running) {
+        osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_OUTRUN_MUTE, osWaitForever);
+        osMessagePut(SIG_LEDHandle, SIG_LED_OUTRUN, osWaitForever);
+        System_Status = SYS_ready;
+      }
+      CHARGE_FLAG = 1;
+      CC_FLAG = 0;
+    } else if (HAL_GPIO_ReadPin(Charge_Check_GPIO_Port, Charge_Check_Pin) ==
+                   GPIO_PIN_RESET &&
+               CHARGE_FLAG) {
+      CHARGE_FLAG = 0;
+      CC_FLAG = 0;
+      osMessagePut(SIG_LEDHandle, SIG_LED_OUTRUN, osWaitForever);
+    }
+
+    // Charge complete check
+    if (CHARGE_FLAG && power_voltag > CC_VOLTAG && !CC_FLAG) {
+      osMessagePut(SIG_LEDHandle, SIG_LED_CHARGEB, osWaitForever);
+      CC_FLAG = 1;
+
+    } else if (CHARGE_FLAG && power_voltag < CC_VOLTAG && CC_FLAG) {
+      CC_FLAG = 0;
+      osMessagePut(SIG_LEDHandle, SIG_LED_CHARGEA, osWaitForever);
+    }
+
+    // If System in charge
+    if (evt.status == osEventMessage && CHARGE_FLAG) {
+      if (power_voltag < CC_VOLTAG) {
+        if (System_Status == SYS_running) {
+          osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_OUTRUN_MUTE,
+                       PUT_MESSAGE_WAV_TIMEOUT);
+          osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_CHARGE,
+                       PUT_MESSAGE_WAV_TIMEOUT);
+          System_Status = SYS_ready;
+          osMessageGet(SIG_GPIOHandle, osWaitForever);
+        } else {
+          osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_CHARGE,
+                       PUT_MESSAGE_WAV_TIMEOUT);
+          osMessageGet(SIG_GPIOHandle, osWaitForever);
+        }
+      }
+      continue;
+    }
     if (System_Status == SYS_ready && evt.status == osEventMessage &&
         evt.value.signals & SIG_POWERKEY_DOWN) {
       cnt = 0;
@@ -153,11 +229,11 @@ void Handle_System(void const* argument) {
 
         if (evt.status == osEventMessage && evt.value.signals == SIG_USERKEY_UP)
           break;
-        else if (evt.status == osEventMessage && evt.value.signals == SIG_POWERKEY_DOWN) {
+        else if (evt.status == osEventMessage &&
+                 evt.value.signals == SIG_POWERKEY_DOWN) {
           cnt = 0;
           break;
-        }
-        else if (++cnt >= SYS_CFG.TEtrigger) {
+        } else if (++cnt >= SYS_CFG.TEtrigger) {
           printf_SYSTEM(">>>System put Trigger E\n");
           if (MUTE_FLAG)
             osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERE,
@@ -188,10 +264,12 @@ void Handle_System(void const* argument) {
                        PUT_MESSAGE_WAV_TIMEOUT);
         osMessagePut(SIG_LEDHandle, SIG_LED_TRIGGERD, PUT_MESSAGE_LED_TIMEOUT);
       } else {
-				printf_SYSTEM(">>>System put LED switch BANK\n");
-				osMessagePut(SIG_LEDHandle, SIG_LED_SWITCHBANK, PUT_MESSAGE_LED_TIMEOUT);
-				osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_COLORSWITCH, PUT_MESSAGE_WAV_TIMEOUT);
-			}
+        printf_SYSTEM(">>>System put LED switch BANK\n");
+        osMessagePut(SIG_LEDHandle, SIG_LED_SWITCHBANK,
+                     PUT_MESSAGE_LED_TIMEOUT);
+        osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_COLORSWITCH,
+                     PUT_MESSAGE_WAV_TIMEOUT);
+      }
     }
     // end of System = running , event == User Key
   }
@@ -240,64 +318,78 @@ void Handle_GPIO(void const* argument) {
     osDelay(3);
   }
 }
+
+
+
+
+
 void x3DListHandle(void const* argument) {
   Lis3dData data;
-  float ans;
+
+	float x = 0,y = 0, z = 0;
+	uint8_t i = 0;
+	static float ans;
+	static const int BL = 35;
+	static const float B[35] = {
+			-0.1034825444, -0.01390230656, -0.01468616165, -0.01545907464, -0.01635932364,
+		 -0.01707814261, -0.01778350584,    -0.01848986, -0.01912000403, -0.01971540041,
+		 -0.02018627338, -0.02066230215, -0.02102502622, -0.02138603106, -0.02160620317,
+		 -0.02182896435, -0.02191580646,   0.9780050516, -0.02191580646, -0.02182896435,
+		 -0.02160620317, -0.02138603106, -0.02102502622, -0.02066230215, -0.02018627338,
+		 -0.01971540041, -0.01912000403,    -0.01848986, -0.01778350584, -0.01707814261,
+		 -0.01635932364, -0.01545907464, -0.01468616165, -0.01390230656,  -0.1034825444
+	};
+	static uint8_t pos = 0;
+	static float shift_x[35] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	static float shift_y[35] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	static float shift_z[35] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	static float ave = 0;
+		
+	osDelay(5000);
+	memset(shift_x, 0, BL *sizeof(float));
+	memset(shift_y, 0, BL *sizeof(float));
+	memset(shift_z, 0, BL *sizeof(float));
+	ans = 0;
+	pos = 0;
+	ave = 0;
+	x=0,y=0,z=0;
+	i = 0;
   taskENTER_CRITICAL();
   Lis3d_Init();
   taskEXIT_CRITICAL();
   for (;;) {
-    if (System_Status != SYS_running) {
-      osDelay(50);
-      continue;
-    }
-
     taskENTER_CRITICAL();
     Lis3dGetData(&data);
-    taskEXIT_CRITICAL();
-		ans = 0;
-    ans = data.Dx * data.Dx;
-    ans += data.Dz * data.Dz;
-    ans = sqrt(ans);
-		// +/- 4g / 0x10000 = +/- 0.5
-		// +/- 0.5 * 1024 * 2 = +/- 1024
-    ans = ans * 1024 * 2/ 0x10000;
-		{
-			const int BL = 85;
-			const float B[85] = {
-				 -0.05936408415,-0.004936652724,-0.005133451428,-0.005327147432,-0.005524651147,
-				-0.005719020031,-0.005905815866,-0.006116441451,-0.006294964813,-0.006483847741,
-				 -0.00667139329, -0.00686581945, -0.00705115404,-0.007231596857,-0.007410131395,
-				-0.007585029583,-0.007757484913,-0.007930437103,-0.008101559244,-0.008268840611,
-				-0.008425734937,-0.008575976826,-0.008717850782,-0.008855309337,-0.008985036053,
-				-0.009110610001,-0.009228942916,-0.009343555197,-0.009447877295,-0.009551500902,
-				-0.009652191773,-0.009749913588,-0.009835532866,-0.009904609993,-0.009972687811,
-				 -0.01001082174, -0.01005535573, -0.01008627471, -0.01017241273, -0.01020499412,
-				 -0.01016818453, -0.01022991724,   0.9897991419, -0.01022991724, -0.01016818453,
-				 -0.01020499412, -0.01017241273, -0.01008627471, -0.01005535573, -0.01001082174,
-				-0.009972687811,-0.009904609993,-0.009835532866,-0.009749913588,-0.009652191773,
-				-0.009551500902,-0.009447877295,-0.009343555197,-0.009228942916,-0.009110610001,
-				-0.008985036053,-0.008855309337,-0.008717850782,-0.008575976826,-0.008425734937,
-				-0.008268840611,-0.008101559244,-0.007930437103,-0.007757484913,-0.007585029583,
-				-0.007410131395,-0.007231596857, -0.00705115404, -0.00686581945, -0.00667139329,
-				-0.006483847741,-0.006294964813,-0.006116441451,-0.005905815866,-0.005719020031,
-				-0.005524651147,-0.005327147432,-0.005133451428,-0.004936652724, -0.05936408415
-			};
-			static uint8_t pos = 0;
-			static float shift[85] = {0};
-			uint8_t i;
-			shift[pos] = ans;
-			ans = 0;
-			for (i = 0; i < BL; i++)
-				ans += B[i] * shift[(BL + pos - i)%BL];
-		}
-		ans = ans > 0? ans : -ans;
-		ans *= 10;
+
+			
+      shift_x[pos] = data.Dx * 1.0 * 1024 / 0x10000;
+      shift_y[pos] = data.Dy * 1.0 * 1024 / 0x10000;
+      shift_z[pos] = data.Dz * 1.0 * 1024 / 0x10000;
+			x = 0;
+			y = 0;
+			z = 0;
+      for (i = 0; i < BL; i++) {
+        x += B[i]*shift_x[(BL + pos - i)%BL];
+        y += B[i]*shift_y[(BL + pos - i)%BL];
+        z += B[i]*shift_z[(BL + pos - i)%BL];
+      }
+      ans = 0;
+      ans = x*x;
+      ans += z*z;
+      ans = sqrt(ans);
+			pos += 1;
+			pos %= BL;
+		ans = ans > 0 ? ans : -ans;
+		taskEXIT_CRITICAL();
+		osDelay(20);
+		if (System_Status != SYS_running) {
+      continue;
+    }
     // Trigger B
     if (SYS_CFG.Cl <= ans && SYS_CFG.Ch >= ans && !Trigger_Freeze_TIME.TC) {
       Trigger_Freeze_TIME.TC = SYS_CFG.TCfreeze;
       printf_SYSTEM(">>>System put Trigger C\n");
-			printf_SYSTEM("<<<3DH:%.2f\n", ans);
+      printf_SYSTEM("<<<3DH:%.2f\n", ans);
       if (MUTE_FLAG) osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERC, 10);
       osMessagePut(SIG_LEDHandle, SIG_LED_TRIGGERC, 10);
       continue;
@@ -307,13 +399,11 @@ void x3DListHandle(void const* argument) {
              !Trigger_Freeze_TIME.TB) {
       Trigger_Freeze_TIME.TB = SYS_CFG.TBfreeze;
       printf_SYSTEM(">>>System put Trigger B\n");
-			printf_SYSTEM("<<<3DH:%.2f\n", ans);
+      printf_SYSTEM("<<<3DH:%.2f\n", ans);
       if (MUTE_FLAG) osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERB, 10);
       osMessagePut(SIG_LEDHandle, SIG_LED_TRIGGERB, 10);
       continue;
     }
-
-    osDelay(20);
   }
 }
 

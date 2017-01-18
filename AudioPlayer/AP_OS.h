@@ -9,7 +9,7 @@
 #include "dac.h"
 
 #define osFIFO_SIZE 256
-#define osFIFO_NUM  5
+#define osFIFO_NUM 5
 __inline __weak uint16_t convert_single(uint16_t src);
 __inline __weak uint16_t convert_double(int16_t src_1, int16_t src_2);
 
@@ -40,11 +40,19 @@ extern const uint8_t SIG_AUDIO_TRIGGERE;
 extern const uint8_t SIG_AUDIO_TRIGGEREOFF;
 /* When LED change bank */
 extern const uint8_t SIG_AUDIO_COLORSWITCH;
+/* Warnning Low Power */
+extern const uint8_t SIG_AUDIO_LOWPOWER;
+/* Warnning restart */
+extern const uint8_t SIG_AUDIO_RESTART;
+/* When System in Running , exit with mute */
+extern const uint8_t SIG_AUDIO_OUTRUN_MUTE;
+/* Warnning power charge */
+extern const uint8_t SIG_AUDIO_CHARGE;
 
-extern osThreadId    WAV_CTLHandle;
-extern osThreadId    DAC_CTLHandle;
+extern osThreadId WAV_CTLHandle;
+extern osThreadId DAC_CTLHandle;
 extern osSemaphoreId DMA_FLAGHandle;
-extern osMessageQId  pWAVHandle;
-extern osMessageQId  SIG_PLAYWAVHandle;
+extern osMessageQId pWAVHandle;
+extern osMessageQId SIG_PLAYWAVHandle;
 
 #endif

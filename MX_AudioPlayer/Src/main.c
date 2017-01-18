@@ -75,13 +75,20 @@ struct config SYS_CFG;
 RGBL RGB_PROFILE[16][2];
 uint32_t i;
 
+static uint8_t parameter_check(struct config p) {
+  if (p.Vol > 3 || p.Bank > nBank || p.Lbright > 1023 || p.S1 > 1023 ||
+      p.Sh > 1023 || p.Cl > 1023 || p.Ch > 1023)
+    return 1;
+  else
+    return 0;
+}
 /* USER CODE END 0 */
 
 int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-	
+	extern uint16_t static_wav[22001];
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -105,12 +112,50 @@ int main(void)
   /* USER CODE BEGIN 2 */
   MX_FATFS_Init();
   res = f_mount(&fs, (const TCHAR*)"0", 1);
-  TX_CFG(&SYS_CFG,RGB_PROFILE);
+	// SD card check
+	if (res != FR_OK)
+	{
+		HAL_GPIO_WritePin(Power_EN_GPIO_Port, Power_EN_Pin, GPIO_PIN_SET);
+		HAL_TIM_Base_Start(&htim2);
+		HAL_GPIO_WritePin(Audio_EN_GPIO_Port, Audio_EN_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(Audio_Soft_EN_GPIO_Port, Audio_Soft_EN_Pin,
+		GPIO_PIN_SET);
+		HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*)static_wav,
+		22001, DAC_ALIGN_12B_R);
+		HAL_Delay(1000);
+		while (HAL_GPIO_ReadPin(Power_KEY_GPIO_Port, Power_KEY_Pin)){
+		;
+		}
+		HAL_GPIO_WritePin(Power_EN_GPIO_Port, Power_EN_Pin, GPIO_PIN_RESET);
+		HAL_Delay(5000);
+	}
+	TX_CFG(&SYS_CFG,RGB_PROFILE);
+	// Parameter check
+	if (parameter_check(SYS_CFG))
+	{
+		uint8_t cnt = 2;
+		HAL_GPIO_WritePin(Power_EN_GPIO_Port, Power_EN_Pin, GPIO_PIN_SET);
+		HAL_TIM_Base_Start(&htim2);
+		HAL_GPIO_WritePin(Audio_EN_GPIO_Port, Audio_EN_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(Audio_Soft_EN_GPIO_Port, Audio_Soft_EN_Pin,
+		GPIO_PIN_SET);
+		while (cnt--) {
+			HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*)static_wav,
+			22001, DAC_ALIGN_12B_R);
+			HAL_Delay(1000);
+		}
+		while (HAL_GPIO_ReadPin(Power_KEY_GPIO_Port, Power_KEY_Pin)){
+		;
+		}
+		HAL_GPIO_WritePin(Power_EN_GPIO_Port, Power_EN_Pin, GPIO_PIN_RESET);
+		HAL_Delay(5000);
+	}
   HAL_Delay(SYS_CFG.Tpon);
   HAL_GPIO_WritePin(Power_EN_GPIO_Port, Power_EN_Pin, GPIO_PIN_SET);
 	while (HAL_GPIO_ReadPin(Power_KEY_GPIO_Port, Power_KEY_Pin)){
 		;
 	}
+	
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */
