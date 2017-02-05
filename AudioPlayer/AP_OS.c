@@ -77,6 +77,8 @@ const uint8_t SIG_AUDIO_RESTART = 0x0C;
 const uint8_t SIG_AUDIO_CHARGE = 0x0D;
 /* When System in Running , exit with mute */
 const uint8_t SIG_AUDIO_OUTRUN_MUTE = 0x0E;
+/* 3D list Log output　*/
+const uint8_t SIG_FATFS_LOG = 0xEE;
 
 // wave pcm buffer, tow channels
 static uint16_t audio_buf1[osFIFO_NUM][osFIFO_SIZE],
@@ -702,6 +704,22 @@ void WAVHandle(void const* argument) {
               CRITICAL_FUNC(fres = f_close(&file_1));
               printf_FATFS("FATFS:a file:[%s] closed:%d\n",
                            "system/colorswitch.wav", fres);
+            } break;
+            case SIG_FATFS_LOG: {
+              extern float log_ans;
+							char buf[20];
+              FIL log;
+							taskENTER_CRITICAL();
+              fres = f_open(&log, "0:/LOG.txt", FA_WRITE|FA_CREATE_NEW);
+              // fres = f_lseek(&log, log.fsize);
+//							#if 1
+//							sprintf(buf, "%.2f", log_ans);
+//							fres = f_puts(buf, &log);
+//							#else
+//              fres = f_printf(&log, "%.2f\r\n", log_ans);
+//							#endif
+              fres = f_close(&log);
+							taskEXIT_CRITICAL();
             } break;
             // case ...
             default:

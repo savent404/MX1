@@ -321,11 +321,11 @@ void Handle_GPIO(void const* argument) {
 
 
 
-
+float log_ans;
 
 void x3DListHandle(void const* argument) {
   Lis3dData data;
-
+#if 1
 	float x = 0,y = 0, z = 0;
 	uint8_t i = 0;
 	static float ans;
@@ -378,15 +378,33 @@ void x3DListHandle(void const* argument) {
 			pos %= BL;
 		ans = ans > 0 ? ans : -ans;
 		taskEXIT_CRITICAL();
-		osDelay(20);
-		if (System_Status != SYS_running) {
+#else
+  int avr_ans,ans,x,z;
+	Lis3d_Init();
+  while (1) {
+		Lis3dGetData(&data);
+    /*x = data.Dx * 1.0 * 1024 / 0x10000;
+    y = data.Dy * 1.0 * 1024 / 0x10000;
+    z = data.Dz * 1.0 * 1024 / 0x10000;
+    ans = sqrt(x*x + z*z);*/
+		x = (int)data.Dx * 1024 / 0x10000;
+		z = (int)data.Dz * 1024 / 0x10000;
+		ans = x + z;
+		ans -= avr_ans;
+		avr_ans += ans / 2;
+		
+#endif
+    osDelay(20);
+    if (System_Status != SYS_running) {
       continue;
     }
     // Trigger B
     if (SYS_CFG.Cl <= ans && SYS_CFG.Ch >= ans && !Trigger_Freeze_TIME.TC) {
       Trigger_Freeze_TIME.TC = SYS_CFG.TCfreeze;
-      printf_SYSTEM(">>>System put Trigger C\n");
-      printf_SYSTEM("<<<3DH:%.2f\n", ans);
+      // printf_SYSTEM(">>>System put Trigger C\n");
+      // printf_SYSTEM("<<<3DH:%d\n", ans);
+      // log_ans = ans;
+      // osMessagePut(SIG_PLAYWAVHandle, SIG_FATFS_LOG, osWaitForever);
       if (MUTE_FLAG) osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERC, 10);
       osMessagePut(SIG_LEDHandle, SIG_LED_TRIGGERC, 10);
       continue;
@@ -395,8 +413,10 @@ void x3DListHandle(void const* argument) {
     else if (SYS_CFG.Sl <= ans && SYS_CFG.Sh >= ans &&
              !Trigger_Freeze_TIME.TB) {
       Trigger_Freeze_TIME.TB = SYS_CFG.TBfreeze;
-      printf_SYSTEM(">>>System put Trigger B\n");
-      printf_SYSTEM("<<<3DH:%.2f\n", ans);
+      // printf_SYSTEM(">>>System put Trigger B\n");
+      // printf_SYSTEM("<<<3DH:%d\n", ans);
+      // log_ans = ans;
+      // osMessagePut(SIG_PLAYWAVHandle, SIG_FATFS_LOG, osWaitForever);
       if (MUTE_FLAG) osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERB, 10);
       osMessagePut(SIG_LEDHandle, SIG_LED_TRIGGERB, 10);
       continue;
