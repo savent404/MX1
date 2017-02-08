@@ -325,7 +325,7 @@ float log_ans;
 
 void x3DListHandle(void const* argument) {
   Lis3dData data;
-#if 1
+
 	float x = 0,y = 0, z = 0;
 	uint8_t i = 0;
 	static float ans;
@@ -351,9 +351,7 @@ void x3DListHandle(void const* argument) {
 	pos = 0;
 	x=0,y=0,z=0;
 	i = 0;
-  taskENTER_CRITICAL();
-  Lis3d_Init();
-  taskEXIT_CRITICAL();
+
   for (;;) {
     taskENTER_CRITICAL();
     Lis3dGetData(&data);
@@ -378,22 +376,7 @@ void x3DListHandle(void const* argument) {
 			pos %= BL;
 		ans = ans > 0 ? ans : -ans;
 		taskEXIT_CRITICAL();
-#else
-  int avr_ans,ans,x,z;
-	Lis3d_Init();
-  while (1) {
-		Lis3dGetData(&data);
-    /*x = data.Dx * 1.0 * 1024 / 0x10000;
-    y = data.Dy * 1.0 * 1024 / 0x10000;
-    z = data.Dz * 1.0 * 1024 / 0x10000;
-    ans = sqrt(x*x + z*z);*/
-		x = (int)data.Dx * 1024 / 0x10000;
-		z = (int)data.Dz * 1024 / 0x10000;
-		ans = x + z;
-		ans -= avr_ans;
-		avr_ans += ans / 2;
-		
-#endif
+
     osDelay(20);
     if (System_Status != SYS_running) {
       continue;

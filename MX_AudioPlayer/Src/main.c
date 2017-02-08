@@ -116,6 +116,7 @@ int main(void)
   MX_TIM1_Init();
 
   /* USER CODE BEGIN 2 */
+  Lis3d_Init();
   MX_FATFS_Init();
   res = f_mount(&fs, (const TCHAR*)"0", 1);
 	// SD card check
