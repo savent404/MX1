@@ -309,7 +309,7 @@ void Simple_LED_Opt(void) {
 
 static int multi_trigger_func(uint32_t mode) {
   // get rand trigger mode
-  uint8_t seed = rand()%3;
+  uint8_t seed = rand()%4;
   uint8_t _mode = mode << seed;
   uint8_t temp = 1;
   uint8_t real_mode = 1;
@@ -317,7 +317,7 @@ static int multi_trigger_func(uint32_t mode) {
     temp *= 2;
     real_mode += 1;
   }
-  real_mode %= 3;
+  real_mode %= 4;
   real_mode += 1;
   switch (real_mode) {
     case 2:
@@ -334,9 +334,13 @@ static int multi_trigger_func(uint32_t mode) {
         osDelay(T_nSparkGap);
       }
 		} break;
+    
+    case 4:
+    return 1;
+
     default:
-    // Error mode
-    break;
+    // Not surpport mode
+    return 0;
   }
 	return 0;
 }
