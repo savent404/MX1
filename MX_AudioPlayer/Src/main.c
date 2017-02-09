@@ -81,12 +81,43 @@ RGBL RGB_PROFILE[16][2];
 
 uint32_t i;
 
+/**
+ * @brief: check SETTING file's parameter
+ * @Retvl: 0-OK / 1-Error
+ * @Note : some parameter will be changed without Error return
+ */
 static uint8_t parameter_check(struct config p) {
-//  if (p.Vol > 3 || p.Bank > nBank || p.Lbright > 1023 || p.S1 > 1023 ||
-//      p.Sh > 1023 || p.Cl > 1023 || p.Ch > 1023)
-//    return 1;
-//  else
-    return 0;
+  // Vol 
+  if (SYS_CFG.Vol > 3) {
+    SYS_CFG.Vol = 3;
+  }
+
+  // Tpon
+  if (SYS_CFG.Tpon < 800) {
+    SYS_CFG.Tpon = 800;
+  }
+
+  // Tin & Ts_switch
+  if (SYS_CFG.Tin >= SYS_CFG.TEtrigger ||
+      SYS_CFG.Ts_switch >= SYS_CFG.TEtrigger)
+      return 1;
+  
+  if (SYS_CFG.TLcolor > SYS_CFG.TEtrigger ||
+      SYS_CFG.TLcolor > SYS_CFG.Tin)
+      return 1;
+  
+  if (SYS_CFG.Ldeep > SYS_CFG.Lbright)
+    SYS_CFG.Ldeep = 0;
+  
+  if (SYS_CFG.Sl > SYS_CFG.Sh ||
+      SYS_CFG.Cl > SYS_CFG.Ch)
+      return 1;
+  if (SYS_CFG.Sl > 1023||
+      SYS_CFG.Sh > 1023||
+      SYS_CFG.Cl > 1023||
+      SYS_CFG.Ch > 1023)
+      return 1;
+  return 0;
 }
 /* USER CODE END 0 */
 
