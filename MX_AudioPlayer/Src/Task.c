@@ -147,8 +147,7 @@ void Handle_System(void const* argument) {
           cnt++;
       }
       printf_KEY("  Counting power key T:%dms\n", cnt);
-      if (cnt >=
-          (SYS_CFG.Tpoff > SYS_CFG.Tout ? SYS_CFG.Tout : SYS_CFG.Tpoff)) {
+      if (cnt >= (SYS_CFG.Tpoff > SYS_CFG.Tout ? SYS_CFG.Tout : SYS_CFG.Tpoff)) {
         if ((SYS_CFG.Tpoff >= SYS_CFG.Tout && SYS_CFG.Tpoff <= cnt) ||
             (SYS_CFG.Tpoff <= SYS_CFG.Tout && SYS_CFG.Tout > cnt)) {
           printf_SYSTEM(">>>System in close mode\n");

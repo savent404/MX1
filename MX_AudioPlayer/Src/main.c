@@ -117,15 +117,10 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
   Lis3d_Init();
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, GPIO_PIN_SET);
   MX_FATFS_Init();
   res = f_mount(&fs, (const TCHAR*)"0", 1);
 
-//  // Mute check
-//  {
-//    extern uint8_t MUTE_FLAG;
-//    if (HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin) == GPIO_PIN_RESET)
-//		  MUTE_FLAG = 0;
-//  }
 	// SD card check
 	if (res != FR_OK)
 	{
@@ -144,6 +139,10 @@ int main(void)
 		HAL_Delay(5000);
 	}
 	TX_CFG(&SYS_CFG,RGB_PROFILE);
+	
+	// System Poweron
+	HAL_Delay(SYS_CFG.Tpon);
+  HAL_GPIO_WritePin(Power_EN_GPIO_Port, Power_EN_Pin, GPIO_PIN_SET);
 	
 	// Read Accent structure;
 	{
@@ -202,12 +201,11 @@ int main(void)
 		HAL_GPIO_WritePin(Power_EN_GPIO_Port, Power_EN_Pin, GPIO_PIN_RESET);
 		HAL_Delay(5000);
 	}
-  HAL_Delay(SYS_CFG.Tpon);
-  HAL_GPIO_WritePin(Power_EN_GPIO_Port, Power_EN_Pin, GPIO_PIN_SET);
+  
 	while (HAL_GPIO_ReadPin(Power_KEY_GPIO_Port, Power_KEY_Pin)){
 		;
 	}
-	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, GPIO_PIN_SET);
+	
 	
   /* USER CODE END 2 */
 
