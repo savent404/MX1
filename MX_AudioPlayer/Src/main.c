@@ -119,6 +119,13 @@ int main(void)
   Lis3d_Init();
   MX_FATFS_Init();
   res = f_mount(&fs, (const TCHAR*)"0", 1);
+
+//  // Mute check
+//  {
+//    extern uint8_t MUTE_FLAG;
+//    if (HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin) == GPIO_PIN_RESET)
+//		  MUTE_FLAG = 0;
+//  }
 	// SD card check
 	if (res != FR_OK)
 	{

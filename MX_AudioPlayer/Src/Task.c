@@ -66,7 +66,8 @@ void Handle_System(void const* argument) {
     osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_LOWPOWER, osWaitForever);
   }
   printf_SYSTEM(">>>System in ready mode\n");
-  if (HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin) == GPIO_PIN_SET) MUTE_FLAG = 1;
+  if (HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin) == GPIO_PIN_RESET)
+		MUTE_FLAG = 0;
   System_Status = SYS_ready;
   Trigger_Freeze_TIME.TB = 0, Trigger_Freeze_TIME.TC = 0,
   Trigger_Freeze_TIME.TD = 0;
