@@ -320,8 +320,6 @@ static int multi_trigger_func(uint32_t mode) {
   real_mode %= 3;
   real_mode += 1;
   switch (real_mode) {
-    case 1:
-      break;
     case 2:
       LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][1], 0xFF, 1);
       osDelay(T_Spark /*SYS_CFG.TDflip*/);
@@ -336,8 +334,9 @@ static int multi_trigger_func(uint32_t mode) {
         osDelay(T_nSparkGap);
       }
 		} break;
-		case 4:
-			return 1;
+    default:
+    // Error mode
+    break;
   }
 	return 0;
 }
