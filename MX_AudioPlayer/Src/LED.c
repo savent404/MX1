@@ -246,7 +246,7 @@ void LEDHandle(void const *argument) {
 
       case SIG_LED_CHARGEB: {
         printf("&LED\tGet Charge B\n");
-        RGBL r = {0, 1023, 1023, 1023};
+        RGBL r = {0, 0, 1023, 0};
         uint8_t i;
         while (1) {
           for (i = 0; i < 20; i++) {
@@ -281,10 +281,10 @@ void LED_COLOR_SET(RGBL data, uint8_t DC, uint8_t mode) {
     TIM1->CCR3 = TIM1->CCR3 * DC / 0xFF;
     TIM1->CCR4 = TIM1->CCR4 * DC / 0xFF;
   } else if (mode == 2) {
-    TIM1->CCR1 = (uint32_t)data.R * DC / 0xFF / 5;
-    TIM1->CCR2 = (uint32_t)data.G * DC / 0xFF / 5;
-    TIM1->CCR3 = (uint32_t)data.B * DC / 0xFF / 5;
-    TIM1->CCR4 = (uint32_t)data.L * DC / 0xFF / 5;
+    TIM1->CCR1 = (uint32_t)data.R * DC / 0xFF;
+    TIM1->CCR2 = (uint32_t)data.G * DC / 0xFF;
+    TIM1->CCR3 = (uint32_t)data.B * DC / 0xFF;
+    TIM1->CCR4 = (uint32_t)data.L * DC / 0xFF;
   }
 }
 

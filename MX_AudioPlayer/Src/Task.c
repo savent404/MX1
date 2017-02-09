@@ -58,7 +58,7 @@ void Handle_System(void const* argument) {
   HAL_ADC_Start(&hadc1);
   HAL_ADC_PollForConversion(&hadc1, 1);
   power_voltag = HAL_ADC_GetValue(&hadc1);
-  power_voltag = power_voltag * 3.3 / 4096.0;
+  power_voltag = power_voltag * SYS_VOLTAG / 4096.0;
 
   if (power_voltag <= LOWPOWER_VOLTAG && power_voltag >= RESTART_VOLTAG) {
     printf_SYSTEM(">>>System put lowPower message\n");
@@ -78,18 +78,16 @@ void Handle_System(void const* argument) {
     osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_STARTUP, PUT_MESSAGE_WAV_TIMEOUT);
   while (1) {
     evt = osMessageGet(SIG_GPIOHandle, 10);
-    if (power_voltag < 1.70) {
+    if (power_voltag < RESTART_VOLTAG) {
       printf(">>>System restart :%.2fV\n", power_voltag);
       osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_RESTART, osWaitForever);
       osDelay(osWaitForever);
     }  // end of restart
     power_voltag = HAL_ADC_GetValue(&hadc1);
-    power_voltag = power_voltag * 3.3 / 4096.0;
+    power_voltag = power_voltag * SYS_VOLTAG / 4096.0;
 
     // Charge check
-    if (HAL_GPIO_ReadPin(Charge_Check_GPIO_Port, Charge_Check_Pin) ==
-            GPIO_PIN_SET &&
-        !CHARGE_FLAG) {
+    if (HAL_GPIO_ReadPin(Charge_Check_GPIO_Port, Charge_Check_Pin) == GPIO_PIN_SET && !CHARGE_FLAG) {
       osMessagePut(SIG_LEDHandle, SIG_LED_CHARGEA, PUT_MESSAGE_LED_TIMEOUT);
       if (System_Status == SYS_running) {
         osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_OUTRUN_MUTE, osWaitForever);
@@ -98,16 +96,14 @@ void Handle_System(void const* argument) {
       }
       CHARGE_FLAG = 1;
       CC_FLAG = 0;
-    } else if (HAL_GPIO_ReadPin(Charge_Check_GPIO_Port, Charge_Check_Pin) ==
-                   GPIO_PIN_RESET &&
-               CHARGE_FLAG) {
+    } else if (HAL_GPIO_ReadPin(Charge_Check_GPIO_Port, Charge_Check_Pin) == GPIO_PIN_RESET && CHARGE_FLAG) {
       CHARGE_FLAG = 0;
       CC_FLAG = 0;
       osMessagePut(SIG_LEDHandle, SIG_LED_OUTRUN, osWaitForever);
     }
 
     // Charge complete check
-    if (CHARGE_FLAG && power_voltag > CC_VOLTAG && !CC_FLAG) {
+    if (CHARGE_FLAG && power_voltag >= CC_VOLTAG && !CC_FLAG) {
       osMessagePut(SIG_LEDHandle, SIG_LED_CHARGEB, osWaitForever);
       CC_FLAG = 1;
 
@@ -134,14 +130,17 @@ void Handle_System(void const* argument) {
       }
       continue;
     }
+
+    
     if (System_Status == SYS_ready && evt.status == osEventMessage &&
-        evt.value.signals & SIG_POWERKEY_DOWN) {
+        (evt.value.signals & SIG_POWERKEY_DOWN)) {
       cnt = 0;
       // wait for power key rise.
       while (1) {
         evt = osMessageGet(SIG_GPIOHandle, 1);
 
-        if (evt.status == osEventMessage && evt.value.signals & SIG_POWERKEY_UP)
+        if (evt.status == osEventMessage &&
+        (evt.value.signals & SIG_POWERKEY_UP))
           break;
         else
           cnt++;

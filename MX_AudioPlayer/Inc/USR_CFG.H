@@ -61,7 +61,8 @@
 #define PUT_MESSAGE_WAV_TIMEOUT 20
 #define PUT_MESSAGE_LED_TIMEOUT 20
 
-#define RESTART_VOLTAG	(1.70)
-#define LOWPOWER_VOLTAG (1.80)
-#define CC_VOLTAG       (1.85)
+#define RESTART_VOLTAG	(1.62)
+#define LOWPOWER_VOLTAG (1.53)
+#define CC_VOLTAG       (2.1)
+#define SYS_VOLTAG      (3.0)
 #endif
