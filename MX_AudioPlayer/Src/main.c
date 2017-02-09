@@ -200,6 +200,7 @@ int main(void)
 	while (HAL_GPIO_ReadPin(Power_KEY_GPIO_Port, Power_KEY_Pin)){
 		;
 	}
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, GPIO_PIN_SET);
 	
   /* USER CODE END 2 */
 

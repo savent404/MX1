@@ -40,7 +40,7 @@ __IO enum { SYS_close, SYS_ready, SYS_running } System_Status = SYS_close;
 /* Bank now */
 __IO uint8_t sBANK = 0;
 /* Mute flag */
-uint8_t MUTE_FLAG = 0;
+uint8_t MUTE_FLAG = 1;
 /* Charging flag */
 uint8_t CHARGE_FLAG = 0;
 /* Charge complete flag */

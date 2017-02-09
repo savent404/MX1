@@ -113,6 +113,12 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(LIS3DH_INTI_GPIO_Port, &GPIO_InitStruct);
+	
+	/*Configure GPIOC pin : PIN_7 */
+	GPIO_InitStruct.Pin = GPIO_PIN_7;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
 }
 
