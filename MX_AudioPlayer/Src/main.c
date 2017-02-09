@@ -215,17 +215,19 @@ int main(void)
 	// Parameter check
 	if (parameter_check(SYS_CFG) || res != FR_OK)
 	{
-		uint8_t cnt = 2;
 		HAL_GPIO_WritePin(Power_EN_GPIO_Port, Power_EN_Pin, GPIO_PIN_SET);
 		HAL_TIM_Base_Start(&htim2);
 		HAL_GPIO_WritePin(Audio_EN_GPIO_Port, Audio_EN_Pin, GPIO_PIN_SET);
 		HAL_GPIO_WritePin(Audio_Soft_EN_GPIO_Port, Audio_Soft_EN_Pin,
 		GPIO_PIN_SET);
-		while (cnt--) {
-			HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*)static_wav,
-			22001, DAC_ALIGN_12B_R);
-			HAL_Delay(1000);
-		}
+		HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*)static_wav,
+		2001, DAC_ALIGN_12B_R);
+		HAL_Delay(200);
+		HAL_DAC_Stop_DMA(&hdac, DAC_CHANNEL_1);
+		HAL_Delay(200);
+		HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*)static_wav,
+		2001, DAC_ALIGN_12B_R);
+		HAL_Delay(200);
 		while (HAL_GPIO_ReadPin(Power_KEY_GPIO_Port, Power_KEY_Pin)){
 		;
 		}

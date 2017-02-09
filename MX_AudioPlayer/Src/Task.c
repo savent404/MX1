@@ -80,6 +80,7 @@ void Handle_System(void const* argument) {
   HAL_ADC_Start(&hadc1);
   HAL_ADC_PollForConversion(&hadc1, 1);
   power_voltag = HAL_ADC_GetValue(&hadc1);
+	HAL_ADC_Stop(&hadc1);
   power_voltag = power_voltag * SYS_VOLTAG / 4096.0;
 
   if (power_voltag <= LOWPOWER_VOLTAG && power_voltag >= RESTART_VOLTAG) {
@@ -107,7 +108,10 @@ void Handle_System(void const* argument) {
       osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_RESTART, osWaitForever);
       osDelay(osWaitForever);
     }  // end of restart
+		HAL_ADC_Start(&hadc1);
+		HAL_ADC_PollForConversion(&hadc1, 1);
     power_voltag = HAL_ADC_GetValue(&hadc1);
+		HAL_ADC_Stop(&hadc1);
     power_voltag = power_voltag * SYS_VOLTAG / 4096.0;
 
     // Charge check
@@ -116,6 +120,7 @@ void Handle_System(void const* argument) {
       if (System_Status == SYS_running) {
         osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_OUTRUN_MUTE, osWaitForever);
         osMessagePut(SIG_LEDHandle, SIG_LED_OUTRUN, osWaitForever);
+				osMessagePut(SIG_LEDHandle, SIG_LED_CHARGEA, osWaitForever);
         System_Status = SYS_ready;
       }
       CHARGE_FLAG = 1;
