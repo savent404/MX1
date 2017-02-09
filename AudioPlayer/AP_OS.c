@@ -288,9 +288,9 @@ void WAVHandle(void const* argument) {
         // Init function
         {
           printf_RANDOMFILE("#Get form ready into running message\n");
-          // read a random file in Bank?/In/?
-          // @get string:: 0:/Bank#/In
-          sprintf(sbuf, "%d/In", sBANK + 1);
+          // read a random file Out Bank?/Out/?
+          // @get string:: 0:/Bank#/Out
+          sprintf(sbuf, "%d/Out", sBANK + 1);
           strcat(sdir, sbuf);
           CRITICAL_FUNC(fres = f_opendir(&fdir, (const TCHAR*)sdir));
           if (fres != FR_OK) {
@@ -398,11 +398,11 @@ void WAVHandle(void const* argument) {
               sbuf[0] = 0;
               strcat(sdir, "0:/Bank");
               file_cnt = nOut;
-              // read a random file in Bank?/Out/?
-              // @get string:: 0:/Bank#/Out
+              // read a random file in Bank?/In/?
+              // @get string:: 0:/Bank#/In
               sprintf(sbuf, "%d", sBANK + 1);
               strcat(sdir, sbuf);
-              strcat(sdir, "/Out");
+              strcat(sdir, "/In");
               CRITICAL_FUNC(fres = f_opendir(&fdir, (const TCHAR*)sdir));
               if (fres != FR_OK) {
                 printf_FATFS("Open DIR:[%s] error:%d\n", sdir, fres);
@@ -436,8 +436,7 @@ void WAVHandle(void const* argument) {
               strcat(sbuf, finfo.fname);
               // get random file path in finfo.
               printf_RANDOMFILE("#Get Random file name:%s\n", sbuf);
-              CRITICAL_FUNC(fres =
-                                f_open(&file_1, (const TCHAR*)sbuf, FA_READ));
+              CRITICAL_FUNC(fres = f_open(&file_1, (const TCHAR*)sbuf, FA_READ));
               if (fres != FR_OK) {
                 printf_FATFS("Open file Error:%d\n", fres);
                 break;
@@ -706,20 +705,7 @@ void WAVHandle(void const* argument) {
                            "system/colorswitch.wav", fres);
             } break;
             case SIG_FATFS_LOG: {
-              extern float log_ans;
-							char buf[20];
-              FIL log;
-							taskENTER_CRITICAL();
-              fres = f_open(&log, "0:/LOG.txt", FA_WRITE|FA_CREATE_NEW);
-              // fres = f_lseek(&log, log.fsize);
-//							#if 1
-//							sprintf(buf, "%.2f", log_ans);
-//							fres = f_puts(buf, &log);
-//							#else
-//              fres = f_printf(&log, "%.2f\r\n", log_ans);
-//							#endif
-              fres = f_close(&log);
-							taskEXIT_CRITICAL();
+
             } break;
             // case ...
             default:
