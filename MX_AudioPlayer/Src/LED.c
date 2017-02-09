@@ -297,7 +297,7 @@ void Simple_LED_Opt(void) {
 
   HAL_GPIO_WritePin(LED5_GPIO_Port, LED5_Pin,
                     (GPIO_PinState)SL[sBANK][cnt].LED1);
-  HAL_GPIO_WritePin(LED6_GPIO_Port, LED5_Pin,
+  HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin,
                     (GPIO_PinState)SL[sBANK][cnt].LED2);
   HAL_GPIO_WritePin(LED7_GPIO_Port, LED7_Pin,
                     (GPIO_PinState)SL[sBANK][cnt].LED3);
