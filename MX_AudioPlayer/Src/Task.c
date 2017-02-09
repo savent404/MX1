@@ -28,6 +28,28 @@ const uint32_t SIG_POWERKEY_UP = 0x0002;
 const uint32_t SIG_USERKEY_DOWN = 0x0004;
 const uint32_t SIG_USERKEY_UP = 0x0008;
 
+
+// AUDO off function
+static uint32_t AUTO_READY_CNT = 0;
+static uint32_t AUTO_OFF_CNT = 0;
+static uint32_t AUTO_REMIND_FLAG = 0;
+
+#define RESET_ALLTRIGGER_CNT() AUTO_READY_CNT=0,AUTO_OFF_CNT=0;
+
+#define CHECK_READY_TRIGGER_CNT(x) if (SYS_CFG.Tautoin) {                      \
+                                     if (System_Status == SYS_running &&\
+                                         (AUTO_READY_CNT += 10) >= SYS_CFG.Tautoin) {       \
+                                       AUTO_REMIND_FLAG = 1;                   \
+                                     }                                         \
+                                   }
+#define CHECK_OFF_TRIGGER_CNT(x)   if (SYS_CFG.Tautooff) {                            \
+                                     if (System_Status == SYS_ready && !CHARGE_FLAG &&        \
+                                        (AUTO_OFF_CNT += 10) >= SYS_CFG.Tautooff) { \
+                                       AUTO_REMIND_FLAG = 2;                          \
+                                     }                                                \
+                                   }
+
+
 volatile static struct TFT {
   volatile int32_t TB;
   volatile int32_t TC;
@@ -74,8 +96,10 @@ void Handle_System(void const* argument) {
   osTimerStart(TriggerFreezTimerHandle, 10);
 
   // System into READY
-  if (MUTE_FLAG)
+  if (MUTE_FLAG) {
     osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_STARTUP, PUT_MESSAGE_WAV_TIMEOUT);
+  } RESET_ALLTRIGGER_CNT();
+
   while (1) {
     evt = osMessageGet(SIG_GPIOHandle, 10);
     if (power_voltag < RESTART_VOLTAG) {
@@ -131,7 +155,29 @@ void Handle_System(void const* argument) {
       continue;
     }
 
-    
+    if (AUTO_REMIND_FLAG == 1) {
+      if (System_Status == SYS_running) {
+        if (MUTE_FLAG)
+          osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_OUTRUN, PUT_MESSAGE_WAV_TIMEOUT);
+        osMessagePut(SIG_LEDHandle, SIG_LED_OUTRUN, PUT_MESSAGE_LED_TIMEOUT);
+      }
+      AUTO_REMIND_FLAG = 0;
+      RESET_ALLTRIGGER_CNT();
+			System_Status = SYS_ready;
+    }
+    else if (AUTO_REMIND_FLAG == 2) {
+      if (System_Status == SYS_ready) {
+        if (MUTE_FLAG)
+          osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_POWEROFF, PUT_MESSAGE_WAV_TIMEOUT);
+        osDelay(2000);
+        HAL_GPIO_WritePin(Power_EN_GPIO_Port, Power_EN_Pin, GPIO_PIN_RESET);
+        continue;
+      }
+      RESET_ALLTRIGGER_CNT();
+      AUTO_REMIND_FLAG = 0;
+    }
+
+
     if (System_Status == SYS_ready && evt.status == osEventMessage &&
         (evt.value.signals & SIG_POWERKEY_DOWN)) {
       cnt = 0;
@@ -166,6 +212,7 @@ void Handle_System(void const* argument) {
             osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_INTORUN,
                          PUT_MESSAGE_WAV_TIMEOUT);
           osMessagePut(SIG_LEDHandle, SIG_LED_INTORUN, PUT_MESSAGE_LED_TIMEOUT);
+          RESET_ALLTRIGGER_CNT();
           continue;
         }
       }
@@ -192,6 +239,7 @@ void Handle_System(void const* argument) {
           osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_OUTRUN,
                        PUT_MESSAGE_WAV_TIMEOUT);
         osMessagePut(SIG_LEDHandle, SIG_LED_OUTRUN, PUT_MESSAGE_LED_TIMEOUT);
+        RESET_ALLTRIGGER_CNT();
         continue;
       }
     }  // end of System = running, event == Power key
@@ -215,6 +263,7 @@ void Handle_System(void const* argument) {
         if (MUTE_FLAG)
           osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_BANKSWITCH,
                        PUT_MESSAGE_WAV_TIMEOUT);
+        RESET_ALLTRIGGER_CNT();
       }
       continue;
     }
@@ -239,6 +288,7 @@ void Handle_System(void const* argument) {
                          PUT_MESSAGE_WAV_TIMEOUT);
           osMessagePut(SIG_LEDHandle, SIG_LED_TRIGGERE,
                        PUT_MESSAGE_LED_TIMEOUT);
+          RESET_ALLTRIGGER_CNT();
           break;
         }
       }
@@ -255,6 +305,7 @@ void Handle_System(void const* argument) {
                        PUT_MESSAGE_WAV_TIMEOUT);
         osMessagePut(SIG_LEDHandle, SIG_LED_TRIGGEREOFF,
                      PUT_MESSAGE_LED_TIMEOUT);
+        RESET_ALLTRIGGER_CNT();
       } else if (!Trigger_Freeze_TIME.TD && cnt) {
         Trigger_Freeze_TIME.TD = SYS_CFG.TDfreeze;
         printf_SYSTEM(">>>System put Trigger D\n");
@@ -262,12 +313,14 @@ void Handle_System(void const* argument) {
           osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERD,
                        PUT_MESSAGE_WAV_TIMEOUT);
         osMessagePut(SIG_LEDHandle, SIG_LED_TRIGGERD, PUT_MESSAGE_LED_TIMEOUT);
+        RESET_ALLTRIGGER_CNT();
       } else {
         printf_SYSTEM(">>>System put LED switch BANK\n");
         osMessagePut(SIG_LEDHandle, SIG_LED_SWITCHBANK,
                      PUT_MESSAGE_LED_TIMEOUT);
         osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_COLORSWITCH,
                      PUT_MESSAGE_WAV_TIMEOUT);
+        RESET_ALLTRIGGER_CNT();
       }
     }
     // end of System = running , event == User Key
@@ -389,6 +442,7 @@ void x3DListHandle(void const* argument) {
       // osMessagePut(SIG_PLAYWAVHandle, SIG_FATFS_LOG, osWaitForever);
       if (MUTE_FLAG) osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERC, 10);
       osMessagePut(SIG_LEDHandle, SIG_LED_TRIGGERC, 10);
+      RESET_ALLTRIGGER_CNT();
       continue;
     }
     // Trigger C
@@ -401,6 +455,7 @@ void x3DListHandle(void const* argument) {
       // osMessagePut(SIG_PLAYWAVHandle, SIG_FATFS_LOG, osWaitForever);
       if (MUTE_FLAG) osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERB, 10);
       osMessagePut(SIG_LEDHandle, SIG_LED_TRIGGERB, 10);
+      RESET_ALLTRIGGER_CNT();
       continue;
     }
   }
@@ -409,11 +464,15 @@ void x3DListHandle(void const* argument) {
 void TriggerFreez(void const* argument) {
 	static int cnt = 0;
 	extern Simple_LED_T SLT[nBank];
+
 	if (++cnt > SLT[sBANK] / 10) {
 		Simple_LED_Opt();
 		cnt = 0;
 	}
-	
+
+  CHECK_READY_TRIGGER_CNT();
+	CHECK_OFF_TRIGGER_CNT();
+
   if (Trigger_Freeze_TIME.TB > 10)
     Trigger_Freeze_TIME.TB -= 10;
   else if (Trigger_Freeze_TIME.TB > 0)
