@@ -126,7 +126,7 @@ void MX_FREERTOS_Init(void) {
   GPIOHandle = osThreadCreate(osThread(GPIO), NULL);
 
   /* definition and creation of WAV_CTL */
-  osThreadDef(WAV_CTL, WAVHandle, osPriorityRealtime, 0, 400);
+  osThreadDef(WAV_CTL, WAVHandle, osPriorityRealtime, 0, 350);
   WAV_CTLHandle = osThreadCreate(osThread(WAV_CTL), NULL);
 
   /* definition and creation of DAC_CTL */
@@ -134,7 +134,7 @@ void MX_FREERTOS_Init(void) {
   DAC_CTLHandle = osThreadCreate(osThread(DAC_CTL), NULL);
 
   /* definition and creation of x3DList_CTL */
-  osThreadDef(x3DList_CTL, x3DListHandle, osPriorityNormal, 0, 300);
+  osThreadDef(x3DList_CTL, x3DListHandle, osPriorityNormal, 0, 250);
   x3DList_CTLHandle = osThreadCreate(osThread(x3DList_CTL), NULL);
 
   /* definition and creation of LED_CTL */

@@ -50,6 +50,7 @@ void LEDHandle(void const *argument) {
 	uint8_t Normal_Mode_STACK = 0;
 	uint8_t Normal_Mode_STACK_ENABLE = 0;
   uint8_t flag = 1;
+  uint8_t jump_flag = 0;
   printf_LED("LED Handle init start\n");
   HAL_TIM_Base_Start(&htim1);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
@@ -58,6 +59,7 @@ void LEDHandle(void const *argument) {
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
   while (1) {
 		if (Normal_Mode_STACK_ENABLE & Normal_Mode_STACK && trigger_e == OUT_TRIGGER_E) {
+      jump_flag = 1;
 			evt.value.v = SIG_LED_INTORUN;
 			goto TAG;
 		}
@@ -91,11 +93,19 @@ void LEDHandle(void const *argument) {
           // STATIC
           case 1: {
 						uint16_t cnt;
-						for (cnt = 1; cnt <= SYS_CFG.TLon / 10; cnt++) {
-						LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][0],
-													0xFF * cnt / (SYS_CFG.TLon / 10), 1);
-						osDelay(10);
-						}
+
+            if (!jump_flag) {
+              for (cnt = 1; cnt < SYS_CFG.TLon / 10; cnt++) {
+              LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][0],
+                            0xFF * cnt / (SYS_CFG.TLon / 10), 1);
+              osDelay(10);
+              }
+            }
+            jump_flag = 0;
+            LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][0],
+                          0xFF, 1);
+            evt = osMessageGet(SIG_LEDHandle, osWaitForever);
+            if (evt.status == osEventMessage) goto TAG;
           } break;
           // Breath
           case 2: {
@@ -126,10 +136,10 @@ void LEDHandle(void const *argument) {
               srand(SysTick->VAL);
               LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][0],
                             rand() % (0xFF - (SYS_CFG.Lbright - SYS_CFG.Ldeep)) + (SYS_CFG.Lbright - SYS_CFG.Ldeep), 1);
-              evt = osMessageGet(SIG_LEDHandle, delay_time[_LMode]);
+              evt = osMessageGet(SIG_LEDHandle, delay_time[SYS_CFG.LMode]);
               if (evt.status == osEventMessage) goto TAG;
             }
-          } break;
+          }
         }
       }
       case SIG_LED_OUTRUN: {
