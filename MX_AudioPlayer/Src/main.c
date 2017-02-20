@@ -235,9 +235,9 @@ int main(void)
 		HAL_Delay(5000);
 	}
   
-	while (HAL_GPIO_ReadPin(Power_KEY_GPIO_Port, Power_KEY_Pin)){
-		;
-	}
+	// while (HAL_GPIO_ReadPin(Power_KEY_GPIO_Port, Power_KEY_Pin)){
+	// 	;
+	// }
 	
 	
   /* USER CODE END 2 */
