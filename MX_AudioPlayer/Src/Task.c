@@ -232,8 +232,8 @@ void Handle_System(void const* argument) {
 
         if (evt.status == osEventMessage && evt.value.signals & SIG_POWERKEY_UP)
           break;
-        else
-          cnt++;
+        else if (cnt++ > SYS_CFG.Tin)
+          break;
       }
       printf_KEY("  Counting power key T:%dms\n", cnt);
       if (cnt >= SYS_CFG.Tin) {
