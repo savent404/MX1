@@ -81,13 +81,30 @@ void Handle_System(void const* argument) {
   HAL_ADC_PollForConversion(&hadc1, 1);
   power_voltag = HAL_ADC_GetValue(&hadc1);
 	HAL_ADC_Stop(&hadc1);
+  HAL_ADCEx_Calibration_Start(&hadc1);
+  HAL_ADC_Start(&hadc1);
+  HAL_ADC_PollForConversion(&hadc1, 1);
+  power_voltag = HAL_ADC_GetValue(&hadc1);
+	HAL_ADC_Stop(&hadc1);
+  HAL_ADCEx_Calibration_Start(&hadc1);
+  HAL_ADC_Start(&hadc1);
+  HAL_ADC_PollForConversion(&hadc1, 1);
+  power_voltag = HAL_ADC_GetValue(&hadc1);
+	HAL_ADC_Stop(&hadc1);
+  HAL_ADCEx_Calibration_Start(&hadc1);
+  HAL_ADC_Start(&hadc1);
+  HAL_ADC_PollForConversion(&hadc1, 1);
+  power_voltag = HAL_ADC_GetValue(&hadc1);
+	HAL_ADC_Stop(&hadc1);
   power_voltag = power_voltag * SYS_VOLTAG / 4096.0;
 
-  if (power_voltag <= LOWPOWER_VOLTAG && power_voltag >= RESTART_VOLTAG) {
+  if (power_voltag <= LOWPOWER_VOLTAG) {
     printf_SYSTEM(">>>System put lowPower message\n");
     printf_SYSTEM("Power voltag:%.2fV\n", power_voltag);
     osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_LOWPOWER, osWaitForever);
+		osDelay(2000);
   }
+  
   printf_SYSTEM(">>>System in ready mode\n");
   if (HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin) == GPIO_PIN_RESET)
 		MUTE_FLAG = 0;
@@ -99,12 +116,19 @@ void Handle_System(void const* argument) {
   // System into READY
   if (MUTE_FLAG) {
     osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_STARTUP, PUT_MESSAGE_WAV_TIMEOUT);
+		osDelay(2000);
   } RESET_ALLTRIGGER_CNT();
 
   while (1) {
     evt = osMessageGet(SIG_GPIOHandle, 10);
+		HAL_ADC_Start(&hadc1);
+		HAL_ADC_PollForConversion(&hadc1, 1);
+    power_voltag = HAL_ADC_GetValue(&hadc1);
+		HAL_ADC_Stop(&hadc1);
+    power_voltag = power_voltag * SYS_VOLTAG / 4096.0;
     if (power_voltag < RESTART_VOLTAG) {
       printf(">>>System restart :%.2fV\n", power_voltag);
+			osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_OUTRUN_MUTE, osWaitForever);
       osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_RESTART, osWaitForever);
       osDelay(osWaitForever);
     }  // end of restart
@@ -126,6 +150,7 @@ void Handle_System(void const* argument) {
       CHARGE_FLAG = 1;
       CC_FLAG = 0;
     } else if (HAL_GPIO_ReadPin(Charge_Check_GPIO_Port, Charge_Check_Pin) == GPIO_PIN_RESET && CHARGE_FLAG) {
+      HAL_GPIO_WritePin(Power_EN_GPIO_Port, Power_EN_Pin, GPIO_PIN_RESET);
       CHARGE_FLAG = 0;
       CC_FLAG = 0;
       osMessagePut(SIG_LEDHandle, SIG_LED_OUTRUN, osWaitForever);

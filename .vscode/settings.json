@@ -2,5 +2,7 @@
 {
     "editor.cursorStyle": "line",
     "C_Cpp.clang_format_fallbackStyle": "Google",
-    "files.associations": {}
+    "files.associations": {
+        "*.H": "cpp"
+    }
 }
