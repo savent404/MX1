@@ -349,7 +349,7 @@ static int multi_trigger_func(uint32_t mode) {
     r = rand() % cnt + 1;
     while (t--) {
 			real_mode <<= 1;
-      if (mode & 0x08 && --r) {
+      if (mode & 0x08 && !(--r)) {
         real_mode |= 1;
       }
       mode <<= 1;
