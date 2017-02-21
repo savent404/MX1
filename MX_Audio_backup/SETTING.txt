@@ -17,15 +17,15 @@ Tmute=500         /关机状态下，进入静音模式的双键复合触发时�
 TLcolor=200       /开机状态下，LEDbank变更的双键复合触发时长
 				          /若TLcolor>TEtrigger,或TLcolor>Tin,则此参数无效
 TBfreeze=300      /触发B重复触发间隔，单位ms
-TBMode=4	        /TriggerLMode,可复选
+TBMode=2	        /TriggerLMode,可复选
 TCfreeze=150      /触发C重复触发间隔，单位ms
-TCMode=3,4        /TriggerLMode,可复选，单次触发只随机执行一种
+TCMode=2,3       /TriggerLMode,可复选，单次触发只随机执行一种
 TDfreeze=150      /触发D重复触发间隔，单位ms
-TDmode=3,4	      /TriggerLMode,可复选，单次触发只随机执行一种
+TDmode=2,3	      /TriggerLMode,可复选，单次触发只随机执行一种
 TEtrigger=800     /开机状态下，触发E的AUX按钮触发时长，单位ms
 
 /***NOTE****/ 若希望按下后持續閃爍直至鬆開，請將TEmode 設置為4
-TEmode=3,4	        /TriggerLMode,可复选
+TEmode=4	        /TriggerLMode,可复选
 
 TLon=2000         /LED从起辉到达到设定全局亮度的时间，单位ms
 TLoff=2000        /LED从全局亮度到熄灭的时间，单位ms

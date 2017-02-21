@@ -309,16 +309,64 @@ void Simple_LED_Opt(void) {
 
 static int multi_trigger_func(uint32_t mode) {
   // get rand trigger mode
-  uint8_t seed = rand()%4;
-  uint8_t _mode = mode << seed;
-  uint8_t temp = 1;
-  uint8_t real_mode = 1;
-  while (!(temp & _mode)) {
-    temp *= 2;
-    real_mode += 1;
+  // uint8_t seed = rand()%4;
+  // uint8_t _mode = mode << seed;
+  // uint8_t temp = 1;
+  // uint8_t real_mode = 1;
+  // while (!(temp & _mode)) {
+  //   temp *= 2;
+  //   real_mode += 1;
+  // }
+  // real_mode %= 4;
+  // real_mode += 1;
+  uint8_t real_mode = 0;
+  {
+    uint8_t cnt = 0;
+    uint8_t r = 0;
+    uint8_t t = 4;
+    switch (mode) {
+      case 0x00: cnt = 0; break;
+
+      case 0x01:
+      case 0x02:
+      case 0x04:
+      case 0x08: cnt = 1; break;
+
+      case 0x03:
+      case 0x05:
+      case 0x06:
+      case 0x09:
+      case 0x0A:
+      case 0x0C: cnt = 2; break;
+
+      case 0x0E:
+      case 0x0D:
+      case 0x0B:
+      case 0x07: cnt = 3; break;
+
+      case 0x0F: cnt = 4; break;
+    }
+    r = rand() % cnt + 1;
+    while (t--) {
+			real_mode <<= 1;
+      if (mode & 0x08 && --r) {
+        real_mode |= 1;
+      }
+      mode <<= 1;
+    }
+		
+		t = 4;
+		cnt = 0;
+		while (t--) {
+			if (real_mode & 0x01) {
+				break;
+			}
+			cnt++;
+			real_mode >>= 1;
+		}
+		
+		real_mode = cnt + 1;
   }
-  real_mode %= 4;
-  real_mode += 1;
   switch (real_mode) {
     case 2:
       LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][1], 0xFF, 1);
