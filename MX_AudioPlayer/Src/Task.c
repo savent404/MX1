@@ -193,8 +193,8 @@ void Handle_System(void const* argument) {
         if (evt.status == osEventMessage &&
         (evt.value.signals & SIG_POWERKEY_UP))
           break;
-        else
-          cnt++;
+        else if (cnt++ > (SYS_CFG.Tpoff > SYS_CFG.Tout ? SYS_CFG.Tpoff : SYS_CFG.Tout))
+          break;
       }
       printf_KEY("  Counting power key T:%dms\n", cnt);
       if (cnt >= (SYS_CFG.Tpoff > SYS_CFG.Tout ? SYS_CFG.Tout : SYS_CFG.Tpoff)) {
@@ -232,8 +232,8 @@ void Handle_System(void const* argument) {
 
         if (evt.status == osEventMessage && evt.value.signals & SIG_POWERKEY_UP)
           break;
-        else
-          cnt++;
+        else if (cnt++ > SYS_CFG.Tin)
+          break;
       }
       printf_KEY("  Counting power key T:%dms\n", cnt);
       if (cnt >= SYS_CFG.Tin) {
@@ -257,8 +257,8 @@ void Handle_System(void const* argument) {
 
         if (evt.status == osEventMessage && evt.value.signals & SIG_USERKEY_UP)
           break;
-        else
-          cnt++;
+        else if (cnt++ > SYS_CFG.Ts_switch)
+          break;
       }
       printf_KEY("  Counting usr key T:%dms\n", cnt);
       if (cnt >= SYS_CFG.Ts_switch) {
