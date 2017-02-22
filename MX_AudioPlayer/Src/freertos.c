@@ -138,7 +138,7 @@ void MX_FREERTOS_Init(void) {
   x3DList_CTLHandle = osThreadCreate(osThread(x3DList_CTL), NULL);
 
   /* definition and creation of LED_CTL */
-  osThreadDef(LED_CTL, LEDHandle, osPriorityLow, 0, 128);
+  osThreadDef(LED_CTL, LEDHandle, osPriorityRealtime, 0, 128);
   LED_CTLHandle = osThreadCreate(osThread(LED_CTL), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */

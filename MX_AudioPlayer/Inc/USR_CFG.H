@@ -52,10 +52,10 @@
 */
 #define TriggerLMode 1
 
-#define T_Spark 200
+#define T_Spark 80
 #define nSparkCount 2
-#define T_nSpark 150
-#define T_nSparkGap 150
+#define T_nSpark 80
+#define T_nSparkGap 80
 #define T_Electricl 100
 
 #define PUT_MESSAGE_WAV_TIMEOUT 20
