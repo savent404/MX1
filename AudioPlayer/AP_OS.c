@@ -53,32 +53,32 @@ const uint8_t SIG_AUDIO_STARTUP = 0x10;
 const uint8_t SIG_AUDIO_POWEROFF = 0x20;
 /* When SYstem from Ready into running */
 const uint8_t SIG_AUDIO_INTORUN = 0x40;
-/* When System from Running into Ready */
-const uint8_t SIG_AUDIO_OUTRUN = 0x80;
 /* When System in Ready switch the Bank */
 const uint8_t SIG_AUDIO_BANKSWITCH = 0x11;
-/* When System in Running, Trigger B */
-const uint8_t SIG_AUDIO_TRIGGERB = 0x01;
-/* When System in Running, Trigger C */
-const uint8_t SIG_AUDIO_TRIGGERC = 0x02;
-/* When System in Running, Trigger D */
-const uint8_t SIG_AUDIO_TRIGGERD = 0x04;
-/* When System in Running, Trigger E */
-const uint8_t SIG_AUDIO_TRIGGERE = 0x08;
-/* When System in Running, Trigger E off */
-const uint8_t SIG_AUDIO_TRIGGEREOFF = 0x09;
-/* When LED change bank */
-const uint8_t SIG_AUDIO_COLORSWITCH = 0x0A;
 /* Warnning Low Power */
 const uint8_t SIG_AUDIO_LOWPOWER = 0x0B;
 /* Warnning restart */
 const uint8_t SIG_AUDIO_RESTART = 0x0C;
 /* Warnning power charge */
 const uint8_t SIG_AUDIO_CHARGE = 0x0D;
+// Interrupt SIG
+/* When System from Running into Ready */
+const uint8_t SIG_AUDIO_OUTRUN = 0xE0;
 /* When System in Running , exit with mute */
-const uint8_t SIG_AUDIO_OUTRUN_MUTE = 0x0E;
-/* 3D list Log output　*/
-const uint8_t SIG_FATFS_LOG = 0xEE;
+const uint8_t SIG_AUDIO_OUTRUN_MUTE = 0xE1;
+/* When System in Running, Trigger E off */
+const uint8_t SIG_AUDIO_TRIGGEREOFF = 0xE2;
+/* When System in Running, Trigger E */
+const uint8_t SIG_AUDIO_TRIGGERE = 0xE3;
+/* When System in Running, Trigger D */
+const uint8_t SIG_AUDIO_TRIGGERD = 0xE4;
+/* When System in Running, Trigger C */
+const uint8_t SIG_AUDIO_TRIGGERC = 0xE5;
+/* When System in Running, Trigger B */
+const uint8_t SIG_AUDIO_TRIGGERB = 0xE6;
+/* When LED change bank */
+const uint8_t SIG_AUDIO_COLORSWITCH = 0xE7;
+const uint8_t SIG_AUDIO_VOID = 0xEE;
 
 // wave pcm buffer, tow channels
 static uint16_t audio_buf1[osFIFO_NUM][osFIFO_SIZE],
@@ -88,6 +88,30 @@ static DIR fdir;
 static FILINFO finfo;
 static void Noise(uint8_t level);
 extern struct config SYS_CFG;
+
+
+/* Interrup surpport
+ */
+
+ static uint8_t Interrupt_ID = SIG_AUDIO_VOID;
+
+ #define IS_INTERRUPT_ID(x) (x&0xE0)
+ #define CLEAR_INTERRUPT_ID() Interrupt_ID = SIG_AUDIO_VOID;
+ #define SET_INTERRUPT_ID(x) Interrupt_ID = x;
+/**
+ *
+ * @Breif: Ask can interrupt?, return 1 will set new pri, or return 0
+ */
+static uint8_t AskInterrupt(uint8_t SIG_AUDIO_ID) {
+  if (IS_INTERRUPT_ID(SIG_AUDIO_ID)) {
+    if (SIG_AUDIO_ID <= Interrupt_ID) {
+      Interrupt_ID = SIG_AUDIO_ID;
+      return 1;
+    }
+  } return 0;
+}
+
+
 
 __inline __weak uint16_t convert_single(uint16_t src) {
   return ((src + 0x7FFF) >> 4);
@@ -169,7 +193,7 @@ __inline __weak uint16_t convert_double(int16_t src_1, int16_t src_2) {
 #define MIX_READ_PLAY_FILE_12()                                              \
   CRITICAL_FUNC(fres = f_read(&file_1, &pcm1, sizeof(pcm1), &cnt_1);         \
                 fres = f_read(&file_1, &data1, sizeof(data1), &cnt_1));      \
-                                                                             \
+  SET_INTERRUPT_ID(evt.value.v);                                             \
   /*Mix Player*/                                                             \
   while (1) {                                                                \
     /* firstly read file 1:Trigger file*/                                    \
@@ -209,6 +233,11 @@ __inline __weak uint16_t convert_double(int16_t src_1, int16_t src_2) {
     osstatus = osMessagePut(pWAVHandle, (uint32_t)audio_buf1[pos1], 0);      \
     while (osstatus) {                                                       \
       osstatus = osMessagePut(pWAVHandle, (uint32_t)audio_buf1[pos1], 0);    \
+    }                                                                        \
+    evt = osMessageGet(SIG_PLAYWAVHandle, 1);                                \
+    if (evt.status == osEventMessage && AskInterrupt(evt.value.v)) {         \
+      f_close(&file_1);                                                      \
+      goto INTERRUPT;                                                        \
     }                                                                        \
     pos1 += 1;                                                               \
     pos1 %= osFIFO_NUM;                                                      \
@@ -380,7 +409,9 @@ void WAVHandle(void const* argument) {
             pos2 %= osFIFO_NUM;
             continue;
           }
-
+          
+          CLEAR_INTERRUPT_ID();
+INTERRUPT:
           switch (evt.value.v) {
             // When System from Running into Ready.
             case SIG_AUDIO_OUTRUN: {
@@ -703,9 +734,6 @@ void WAVHandle(void const* argument) {
               CRITICAL_FUNC(fres = f_close(&file_1));
               printf_FATFS("FATFS:a file:[%s] closed:%d\n",
                            "system/colorswitch.wav", fres);
-            } break;
-            case SIG_FATFS_LOG: {
-
             } break;
             // case ...
             default:
