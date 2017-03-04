@@ -27,9 +27,10 @@ typedef struct {
     int8_t logic_data;
 } ACC_DataStructureTypedef;
 
-#define AC 2
+#define AC 3
 #define BC 0
 #define TOTAL 7
+#define CRYL 0.85
 
 static ACC_DataStructureTypedef AccData[TOTAL];
 static uint32_t AccPos = 0;
@@ -62,7 +63,7 @@ ACC_TriggerTypedef ACC_TriggerCheck(void)
     taskEXIT_CRITICAL();
 
     // Normalize
-    data = ACC_Normalize(_data.x, _data.y, _data.z);
+    data = ACC_Normalize(_data.Dx, _data.Dy, _data.Dz);
 
     // Insert data 
     {
@@ -70,6 +71,7 @@ ACC_TriggerTypedef ACC_TriggerCheck(void)
         ACC_Insert(data, init_flag);
         if (init_flag) {
             init_flag = 0;
+            return ACC_TriggerNONE;
         }
     }
     
@@ -77,7 +79,7 @@ ACC_TriggerTypedef ACC_TriggerCheck(void)
     // Check if is Trigger C, or set to TriggerB
     if (ACC_SUM(0) > AC) {
         res = ACC_TriggerC;
-    } else if (abs(data) > 0.99) {
+    } else if ((AccData[AccPos].diff_data>0?AccData[AccPos].diff_data:-AccData[AccPos].diff_data) > CRYL) {
         res = ACC_TriggerC;
     }
 
@@ -96,9 +98,9 @@ ACC_TriggerTypedef ACC_TriggerCheck(void)
  * @Breif: Normalize x,y,z to one float data
  */
 __inline static float ACC_Normalize(int16_t x, int16_t y, int16_t z) {
-    float fx = (float)x * 2.0 / 0xFFFF,
-          fy = (float)y * 2.0 / 0xFFFF,
-          fz = (float)z * 2.0 / 0xFFFF;
+    float fx = (float)x * 4.0 / 0xFFFF,
+          fy = (float)y * 4.0 / 0xFFFF,
+          fz = (float)z * 4.0 / 0xFFFF;
     return sqrt(fx*fx + fy*fy + fz*fz);
 }
 /**
@@ -126,8 +128,8 @@ __inline static uint32_t ACC_SUM(uint8_t opt) {
 __inline static void ACC_Insert(float data, uint8_t init_flag) {
     AccData[AccPos].true_data = data;
     AccData[AccPos].diff_data = data - AccData[(AccPos+TOTAL-1)%TOTAL].true_data;
-    if (AccData[AccPos] * AccData[(AccPos+TOTAL-1)%TOTAL] < 0) {
-        if (abs(data) > 0.1) {
+    if (AccData[AccPos].diff_data * AccData[(AccPos+TOTAL-1)%TOTAL].diff_data < 0) {
+        if ((AccData[AccPos].diff_data>0?AccData[AccPos].diff_data:-AccData[AccPos].diff_data) > 0.1) {
             AccData[AccPos].logic_data = 1;
         } else {
             AccData[AccPos].logic_data = -1;
