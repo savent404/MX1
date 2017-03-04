@@ -12,6 +12,8 @@
 #include "DEBUG_CFG.h"
 #include "LED.h"
 #include "adc.h"
+#include "ACC.h"
+
 extern struct config SYS_CFG;
 extern RGBL RGB_PROFILE[16][2];
 
@@ -406,7 +408,7 @@ void Handle_GPIO(void const* argument) {
 float log_ans;
 
 void x3DListHandle(void const* argument) {
-  Lis3dData data;
+  /*Lis3dData data;
 
 	float x = 0,y = 0, z = 0;
 	uint8_t i = 0;
@@ -458,13 +460,17 @@ void x3DListHandle(void const* argument) {
 			pos %= BL;
 		ans = ans > 0 ? ans : -ans;
 		taskEXIT_CRITICAL();
-
+    */
+  ACC_TriggerTypedef res;
+  while (1){
+    res = ACC_TriggerCheck();
     osDelay(20);
     if (System_Status != SYS_running) {
       continue;
     }
     // Trigger B
-    if (SYS_CFG.Cl <= ans && SYS_CFG.Ch >= ans && !Trigger_Freeze_TIME.TC) {
+    // if (SYS_CFG.Cl <= ans && SYS_CFG.Ch >= ans && !Trigger_Freeze_TIME.TC) {
+    if (res == ACC_TriggerC && !Trigger_Freeze_TIME.TC) {
       Trigger_Freeze_TIME.TC = SYS_CFG.TCfreeze;
       // printf_SYSTEM(">>>System put Trigger C\n");
       // printf_SYSTEM("<<<3DH:%d\n", ans);
@@ -476,8 +482,9 @@ void x3DListHandle(void const* argument) {
       continue;
     }
     // Trigger C
-    else if (SYS_CFG.Sl <= ans && SYS_CFG.Sh >= ans &&
-             !Trigger_Freeze_TIME.TB) {
+    // else if (SYS_CFG.Sl <= ans && SYS_CFG.Sh >= ans &&
+            //  !Trigger_Freeze_TIME.TB) {
+    else if (res == ACC_TriggerB && !Trigger_Freeze_TIME.TB) {
       Trigger_Freeze_TIME.TB = SYS_CFG.TBfreeze;
       // printf_SYSTEM(">>>System put Trigger B\n");
       // printf_SYSTEM("<<<3DH:%d\n", ans);
