@@ -52,16 +52,20 @@
 */
 #define TriggerLMode 1
 
-#define T_Spark 200
+#define T_Spark 80
 #define nSparkCount 2
-#define T_nSpark 150
-#define T_nSparkGap 150
+#define T_nSpark 80
+#define T_nSparkGap 80
 #define T_Electricl 100
 
 #define PUT_MESSAGE_WAV_TIMEOUT 20
 #define PUT_MESSAGE_LED_TIMEOUT 20
 
-#define RESTART_VOLTAG	(1.70)
-#define LOWPOWER_VOLTAG (1.80)
-#define CC_VOLTAG       (1.85)
+#define REL_RESTART_VOLTAG (3.1)
+#define RESTART_VOLTAG	(REL_RESTART_VOLTAG/2)
+#define REL_LOWPOWER_VOLTAG (3.4)
+#define LOWPOWER_VOLTAG (REL_LOWPOWER_VOLTAG/2)
+#define REL_CC_VOLTAG   (4.2)
+#define CC_VOLTAG       (REL_CC_VOLTAG/2)
+#define SYS_VOLTAG      (3.0)
 #endif

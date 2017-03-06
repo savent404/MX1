@@ -10,7 +10,7 @@
       <TargetName>MX_AudioPlayer</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
-      <pCCUsed>5060300::V5.06 update 3 (build 300)::ARMCC</pCCUsed>
+      <pCCUsed>5060422::V5.06 update 4 (build 422)::ARMCC</pCCUsed>
       <TargetOption>
         <TargetCommonOption>
           <Device>STM32F103RD</Device>
@@ -1018,6 +1018,11 @@
               <FileName>Lis3D.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Lis3D\Lis3D.c</FilePath>
+            </File>
+            <File>
+              <FileName>ACC.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\AudioPlayer\ACC.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -48,6 +48,8 @@ extern const uint8_t SIG_AUDIO_RESTART;
 extern const uint8_t SIG_AUDIO_OUTRUN_MUTE;
 /* Warnning power charge */
 extern const uint8_t SIG_AUDIO_CHARGE;
+/* 3D list Log output　*/
+extern const uint8_t SIG_FATFS_LOG;
 
 extern osThreadId WAV_CTLHandle;
 extern osThreadId DAC_CTLHandle;

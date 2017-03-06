@@ -15,3 +15,13 @@ You needs
 >[FreeRTOS](http://www.freertos.org/)
 ## About Audio Format
 >[PCM WAVE Format](http://ibillxia.github.io/blog/2013/07/20/details-of-wave-format-and-reading-wave-files-in-C-language/)
+
+## Function check
+
+**[OK]Main Button**
+
+**[OK]Aux Button**
+
+**[OK]Main&Aux**
+
+**[OK]SD card SETTING**

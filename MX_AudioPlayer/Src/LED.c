@@ -50,6 +50,7 @@ void LEDHandle(void const *argument) {
 	uint8_t Normal_Mode_STACK = 0;
 	uint8_t Normal_Mode_STACK_ENABLE = 0;
   uint8_t flag = 1;
+  uint8_t jump_flag = 0;
   printf_LED("LED Handle init start\n");
   HAL_TIM_Base_Start(&htim1);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
@@ -58,6 +59,7 @@ void LEDHandle(void const *argument) {
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
   while (1) {
 		if (Normal_Mode_STACK_ENABLE & Normal_Mode_STACK && trigger_e == OUT_TRIGGER_E) {
+      jump_flag = 1;
 			evt.value.v = SIG_LED_INTORUN;
 			goto TAG;
 		}
@@ -91,11 +93,19 @@ void LEDHandle(void const *argument) {
           // STATIC
           case 1: {
 						uint16_t cnt;
-						for (cnt = 1; cnt <= SYS_CFG.TLon / 10; cnt++) {
-						LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][0],
-													0xFF * cnt / (SYS_CFG.TLon / 10), 1);
-						osDelay(10);
-						}
+
+            if (!jump_flag) {
+              for (cnt = 1; cnt < SYS_CFG.TLon / 10; cnt++) {
+              LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][0],
+                            0xFF * cnt / (SYS_CFG.TLon / 10), 1);
+              osDelay(10);
+              }
+            }
+            jump_flag = 0;
+            LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][0],
+                          0xFF, 1);
+            evt = osMessageGet(SIG_LEDHandle, osWaitForever);
+            if (evt.status == osEventMessage) goto TAG;
           } break;
           // Breath
           case 2: {
@@ -126,10 +136,10 @@ void LEDHandle(void const *argument) {
               srand(SysTick->VAL);
               LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][0],
                             rand() % (0xFF - (SYS_CFG.Lbright - SYS_CFG.Ldeep)) + (SYS_CFG.Lbright - SYS_CFG.Ldeep), 1);
-              evt = osMessageGet(SIG_LEDHandle, delay_time[_LMode]);
+              evt = osMessageGet(SIG_LEDHandle, delay_time[SYS_CFG.LMode]);
               if (evt.status == osEventMessage) goto TAG;
             }
-          } break;
+          }
         }
       }
       case SIG_LED_OUTRUN: {
@@ -236,7 +246,7 @@ void LEDHandle(void const *argument) {
 
       case SIG_LED_CHARGEB: {
         printf("&LED\tGet Charge B\n");
-        RGBL r = {0, 1023, 1023, 1023};
+        RGBL r = {0, 0, 1023, 0};
         uint8_t i;
         while (1) {
           for (i = 0; i < 20; i++) {
@@ -271,10 +281,10 @@ void LED_COLOR_SET(RGBL data, uint8_t DC, uint8_t mode) {
     TIM1->CCR3 = TIM1->CCR3 * DC / 0xFF;
     TIM1->CCR4 = TIM1->CCR4 * DC / 0xFF;
   } else if (mode == 2) {
-    TIM1->CCR1 = (uint32_t)data.R * DC / 0xFF / 5;
-    TIM1->CCR2 = (uint32_t)data.G * DC / 0xFF / 5;
-    TIM1->CCR3 = (uint32_t)data.B * DC / 0xFF / 5;
-    TIM1->CCR4 = (uint32_t)data.L * DC / 0xFF / 5;
+    TIM1->CCR1 = (uint32_t)data.R * DC / 0xFF;
+    TIM1->CCR2 = (uint32_t)data.G * DC / 0xFF;
+    TIM1->CCR3 = (uint32_t)data.B * DC / 0xFF;
+    TIM1->CCR4 = (uint32_t)data.L * DC / 0xFF;
   }
 }
 
@@ -287,7 +297,7 @@ void Simple_LED_Opt(void) {
 
   HAL_GPIO_WritePin(LED5_GPIO_Port, LED5_Pin,
                     (GPIO_PinState)SL[sBANK][cnt].LED1);
-  HAL_GPIO_WritePin(LED6_GPIO_Port, LED5_Pin,
+  HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin,
                     (GPIO_PinState)SL[sBANK][cnt].LED2);
   HAL_GPIO_WritePin(LED7_GPIO_Port, LED7_Pin,
                     (GPIO_PinState)SL[sBANK][cnt].LED3);
@@ -299,19 +309,65 @@ void Simple_LED_Opt(void) {
 
 static int multi_trigger_func(uint32_t mode) {
   // get rand trigger mode
-  uint8_t seed = rand()%3;
-  uint8_t _mode = mode << seed;
-  uint8_t temp = 1;
-  uint8_t real_mode = 1;
-  while (!(temp & _mode)) {
-    temp *= 2;
-    real_mode += 1;
+  // uint8_t seed = rand()%4;
+  // uint8_t _mode = mode << seed;
+  // uint8_t temp = 1;
+  // uint8_t real_mode = 1;
+  // while (!(temp & _mode)) {
+  //   temp *= 2;
+  //   real_mode += 1;
+  // }
+  // real_mode %= 4;
+  // real_mode += 1;
+  uint8_t real_mode = 0;
+  {
+    uint8_t cnt = 0;
+    uint8_t r = 0;
+    uint8_t t = 4;
+    switch (mode) {
+      case 0x00: cnt = 0; break;
+
+      case 0x01:
+      case 0x02:
+      case 0x04:
+      case 0x08: cnt = 1; break;
+
+      case 0x03:
+      case 0x05:
+      case 0x06:
+      case 0x09:
+      case 0x0A:
+      case 0x0C: cnt = 2; break;
+
+      case 0x0E:
+      case 0x0D:
+      case 0x0B:
+      case 0x07: cnt = 3; break;
+
+      case 0x0F: cnt = 4; break;
+    }
+    r = rand() % cnt + 1;
+    while (t--) {
+			real_mode <<= 1;
+      if (mode & 0x08 && !(--r)) {
+        real_mode |= 1;
+      }
+      mode <<= 1;
+    }
+		
+		t = 4;
+		cnt = 0;
+		while (t--) {
+			if (real_mode & 0x01) {
+				break;
+			}
+			cnt++;
+			real_mode >>= 1;
+		}
+		
+		real_mode = cnt + 1;
   }
-  real_mode %= 3;
-  real_mode += 1;
   switch (real_mode) {
-    case 1:
-      break;
     case 2:
       LED_COLOR_SET(RGB_PROFILE[(sBANK + shift_bank) % nBank][1], 0xFF, 1);
       osDelay(T_Spark /*SYS_CFG.TDflip*/);
@@ -326,8 +382,13 @@ static int multi_trigger_func(uint32_t mode) {
         osDelay(T_nSparkGap);
       }
 		} break;
-		case 4:
-			return 1;
+    
+    case 4:
+    return 1;
+
+    default:
+    // Not surpport mode
+    return 0;
   }
 	return 0;
 }

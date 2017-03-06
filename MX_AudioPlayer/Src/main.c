@@ -81,12 +81,43 @@ RGBL RGB_PROFILE[16][2];
 
 uint32_t i;
 
+/**
+ * @brief: check SETTING file's parameter
+ * @Retvl: 0-OK / 1-Error
+ * @Note : some parameter will be changed without Error return
+ */
 static uint8_t parameter_check(struct config p) {
-//  if (p.Vol > 3 || p.Bank > nBank || p.Lbright > 1023 || p.S1 > 1023 ||
-//      p.Sh > 1023 || p.Cl > 1023 || p.Ch > 1023)
-//    return 1;
-//  else
-    return 0;
+  // Vol 
+  if (SYS_CFG.Vol > 3) {
+    SYS_CFG.Vol = 3;
+  }
+
+  // Tpon
+  if (SYS_CFG.Tpon < 800) {
+    SYS_CFG.Tpon = 800;
+  }
+
+  // Tin & Ts_switch
+  if (SYS_CFG.Tin >= SYS_CFG.TEtrigger ||
+      SYS_CFG.Ts_switch >= SYS_CFG.TEtrigger)
+      return 1;
+  
+  if (SYS_CFG.TLcolor > SYS_CFG.TEtrigger ||
+      SYS_CFG.TLcolor > SYS_CFG.Tin)
+      return 1;
+  
+  if (SYS_CFG.Ldeep > SYS_CFG.Lbright)
+    SYS_CFG.Ldeep = 0;
+  
+  if (SYS_CFG.Sl > SYS_CFG.Sh ||
+      SYS_CFG.Cl > SYS_CFG.Ch)
+      return 1;
+  if (SYS_CFG.Sl > 1023||
+      SYS_CFG.Sh > 1023||
+      SYS_CFG.Cl > 1023||
+      SYS_CFG.Ch > 1023)
+      return 1;
+  return 0;
 }
 /* USER CODE END 0 */
 
@@ -116,8 +147,11 @@ int main(void)
   MX_TIM1_Init();
 
   /* USER CODE BEGIN 2 */
+  Lis3d_Init();
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, GPIO_PIN_SET);
   MX_FATFS_Init();
   res = f_mount(&fs, (const TCHAR*)"0", 1);
+
 	// SD card check
 	if (res != FR_OK)
 	{
@@ -136,6 +170,10 @@ int main(void)
 		HAL_Delay(5000);
 	}
 	TX_CFG(&SYS_CFG,RGB_PROFILE);
+	
+	// System Poweron
+	HAL_Delay(SYS_CFG.Tpon);
+  HAL_GPIO_WritePin(Power_EN_GPIO_Port, Power_EN_Pin, GPIO_PIN_SET);
 	
 	// Read Accent structure;
 	{
@@ -177,28 +215,30 @@ int main(void)
 	// Parameter check
 	if (parameter_check(SYS_CFG) || res != FR_OK)
 	{
-		uint8_t cnt = 2;
 		HAL_GPIO_WritePin(Power_EN_GPIO_Port, Power_EN_Pin, GPIO_PIN_SET);
 		HAL_TIM_Base_Start(&htim2);
 		HAL_GPIO_WritePin(Audio_EN_GPIO_Port, Audio_EN_Pin, GPIO_PIN_SET);
 		HAL_GPIO_WritePin(Audio_Soft_EN_GPIO_Port, Audio_Soft_EN_Pin,
 		GPIO_PIN_SET);
-		while (cnt--) {
-			HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*)static_wav,
-			22001, DAC_ALIGN_12B_R);
-			HAL_Delay(1000);
-		}
+		HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*)static_wav,
+		2001, DAC_ALIGN_12B_R);
+		HAL_Delay(200);
+		HAL_DAC_Stop_DMA(&hdac, DAC_CHANNEL_1);
+		HAL_Delay(200);
+		HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*)static_wav,
+		2001, DAC_ALIGN_12B_R);
+		HAL_Delay(200);
 		while (HAL_GPIO_ReadPin(Power_KEY_GPIO_Port, Power_KEY_Pin)){
 		;
 		}
 		HAL_GPIO_WritePin(Power_EN_GPIO_Port, Power_EN_Pin, GPIO_PIN_RESET);
 		HAL_Delay(5000);
 	}
-  HAL_Delay(SYS_CFG.Tpon);
-  HAL_GPIO_WritePin(Power_EN_GPIO_Port, Power_EN_Pin, GPIO_PIN_SET);
-	while (HAL_GPIO_ReadPin(Power_KEY_GPIO_Port, Power_KEY_Pin)){
-		;
-	}
+  
+	// while (HAL_GPIO_ReadPin(Power_KEY_GPIO_Port, Power_KEY_Pin)){
+	// 	;
+	// }
+	
 	
   /* USER CODE END 2 */
 
