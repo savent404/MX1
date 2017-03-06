@@ -109,14 +109,14 @@ static uint8_t parameter_check(struct config p) {
   if (SYS_CFG.Ldeep > SYS_CFG.Lbright)
     SYS_CFG.Ldeep = 0;
   
-  if (SYS_CFG.Sl > SYS_CFG.Sh ||
-      SYS_CFG.Cl > SYS_CFG.Ch)
-      return 1;
-  if (SYS_CFG.Sl > 1023||
-      SYS_CFG.Sh > 1023||
-      SYS_CFG.Cl > 1023||
-      SYS_CFG.Ch > 1023)
-      return 1;
+//  if (SYS_CFG.Sl > SYS_CFG.Sh ||
+//      SYS_CFG.Cl > SYS_CFG.Ch)
+//      return 1;
+//  if (SYS_CFG.Sl > 1023||
+//      SYS_CFG.Sh > 1023||
+//      SYS_CFG.Cl > 1023||
+//      SYS_CFG.Ch > 1023)
+//      return 1;
   return 0;
 }
 /* USER CODE END 0 */

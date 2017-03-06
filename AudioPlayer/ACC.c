@@ -20,6 +20,9 @@
  */
 
 #include "ACC.h"
+#include "tx_cfg.h"
+
+extern struct config SYS_CFG;
 
 typedef struct {
     float true_data;
@@ -27,13 +30,14 @@ typedef struct {
     int8_t logic_data;
 } ACC_DataStructureTypedef;
 
-#define AC 3
-#define BC 0
+#define AC (/*3*/ SYS_CFG.Sl)
+#define BC (/*0*/ SYS_CFG.Sh)
 #define TOTAL 7
-#define CRYL 0.85
+#define CRYL 100
 
 static ACC_DataStructureTypedef AccData[TOTAL];
 static uint32_t AccPos = 0;
+static uint32_t TriggerB_CNT = 0;
 /**
  * @Breif: Normalize x,y,z to one float data
  */
@@ -89,7 +93,15 @@ ACC_TriggerTypedef ACC_TriggerCheck(void)
     } else {
         res = ACC_TriggerB;
     }
-
+		
+    if (res == ACC_TriggerB) {
+			if (!TriggerB_CNT) {
+				TriggerB_CNT = 10;
+				res = ACC_TriggerNONE;
+			}
+		}
+		if (TriggerB_CNT)
+			TriggerB_CNT -= 1;
     return res;
 
 }
@@ -98,9 +110,9 @@ ACC_TriggerTypedef ACC_TriggerCheck(void)
  * @Breif: Normalize x,y,z to one float data
  */
 __inline static float ACC_Normalize(int16_t x, int16_t y, int16_t z) {
-    float fx = (float)x * 4.0 / 0xFFFF,
-          fy = (float)y * 4.0 / 0xFFFF,
-          fz = (float)z * 4.0 / 0xFFFF;
+    float fx = (float)x * 16.0 / 0xFFFF,
+          fy = (float)y * 16.0 / 0xFFFF,
+          fz = (float)z * 16.0 / 0xFFFF;
     return sqrt(fx*fx + fy*fy + fz*fz);
 }
 /**
