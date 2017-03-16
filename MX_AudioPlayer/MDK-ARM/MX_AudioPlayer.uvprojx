@@ -1019,11 +1019,6 @@
               <FileType>1</FileType>
               <FilePath>..\..\Lis3D\Lis3D.c</FilePath>
             </File>
-            <File>
-              <FileName>ACC.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\AudioPlayer\ACC.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>

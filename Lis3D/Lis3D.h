@@ -33,7 +33,7 @@ static uint8_t SPI_LIS3DH_SendByte(uint8_t byte);
 
 
 void Lis3d_Init(void);
-void Lis3dGetData(Lis3dData *p);
-char Lis3dCouter(Lis3dData* data);
+uint8_t Lis3d_isClick(void);
+uint8_t Lis3d_isMove(void);
 
 #endif
