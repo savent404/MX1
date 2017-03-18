@@ -17,7 +17,8 @@ static const char name_string[][10] = {
     "TCfreeze", "TCMode",   "TDfreeze", "TDMode",  "TEtrigger", "TEMode",
     "TLon",     "TLoff",    "Lbright",  "Ldeep",   "LMode",     "memsHz",
     "memsA",    "memsThr",  "memsGap",  "Sl",      "Sh",        "Cl",
-    "Ch"};
+    "Ch",       "MD",       "MT",       "CD",      "CT",        "CL",
+    "CW"};
 
 void TX_CFG(struct config *cfg, RGBL rgbl[][2]) {
   char name[NAME_SIZE];
@@ -41,7 +42,7 @@ void TX_CFG(struct config *cfg, RGBL rgbl[][2]) {
 
     //   match name string
     for (res = 0; res < sizeof(name_string) / 10; res++) {
-      if (!strcasecmp(name, name_string[res])) break;
+      if (!strcmp(name, name_string[res])) break;
     }
     switch (res) {
       case 0: sscanf(Lbuf,"%*[^=]=%d", &(cfg->Vol));break;
@@ -75,6 +76,12 @@ void TX_CFG(struct config *cfg, RGBL rgbl[][2]) {
       case 28: sscanf(Lbuf,"%*[^=]=%d", &(cfg->Sh));break;
       case 29: sscanf(Lbuf,"%*[^=]=%d", &(cfg->Cl));break;
       case 30: sscanf(Lbuf,"%*[^=]=%d", &(cfg->Ch));break;
+      case 31: sscanf(Lbuf,"%*[^=]=%d", &(cfg->MD));break;
+      case 32: sscanf(Lbuf,"%*[^=]=%d", &(cfg->MT));break;
+      case 33: sscanf(Lbuf,"%*[^=]=%d", &(cfg->CD));break;
+      case 34: sscanf(Lbuf,"%*[^=]=%d", &(cfg->CT));break;
+      case 35: sscanf(Lbuf,"%*[^=]=%d", &(cfg->CL));break;
+      case 36: sscanf(Lbuf,"%*[^=]=%d", &(cfg->CW));break;
     }
   }
 	f_close(&fp);

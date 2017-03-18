@@ -57,6 +57,13 @@ struct config {
   uint32_t Sh;  //触发B，加速度计上限值，范围0~1023
   uint32_t Cl;  //触发C，加速度计下限值，范围0~1023
   uint32_t Ch;  //触发C, 加速度计上限值，范围0~1023
+
+  uint32_t MD;
+  uint32_t MT;
+  uint32_t CD;
+  uint32_t CT;
+  uint32_t CL;
+  uint32_t CW;
 };
 
 void TX_CFG(struct config *cfg, RGBL rgbl[][2]);

@@ -21,6 +21,16 @@ typedef struct Data
 }
 Lis3dData;
 
+typedef struct _Lis3dConfig
+{
+  uint16_t MD;
+  uint16_t MT;
+  uint16_t CD;
+  uint16_t CT;
+  uint16_t CL;
+  uint16_t CW;
+} Lis3dConfig;
+
 static unsigned char LIS3DH_SPI_RD(unsigned char addr);
 static void LIS3DH_SPI_WR(unsigned char addr,unsigned char wrdata);
 /*
@@ -33,6 +43,7 @@ static uint8_t SPI_LIS3DH_SendByte(uint8_t byte);
 
 
 void Lis3d_Init(void);
+void Lis3d_Set(Lis3dConfig *para);
 uint8_t Lis3d_isClick(void);
 uint8_t Lis3d_isMove(void);
 
