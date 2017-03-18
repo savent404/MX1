@@ -6,8 +6,8 @@
 		                //ofiles中的bank计数或者实际文件夹数大于此设定值，则工作时将多余部分舍弃，只在此值限定范围内循环
 #define nIn 6           //设定Bank#文件夹下In文件夹内允许最大文件数量
 #define nOut 2		    //设定Bank#文件夹下Out文件夹内允许最大文件数量
-#define nTrigger_B 16   //设定Bank#文件夹下Trigger_B文件夹内允许最大文件数量
-#define nTrigger_C 16   //设定Bank#文件夹下Trigger_C文件夹内允许最大文件数量
+#define nTrigger_B 8   //设定Bank#文件夹下Trigger_B文件夹内允许最大文件数量
+#define nTrigger_C 8   //设定Bank#文件夹下Trigger_C文件夹内允许最大文件数量
 #define nTrigger_D 8    //设定Bank#文件夹下Trigger_D文件夹内允许最大文件数量
 #define nTrigger_E 2    //设定Bank#文件夹下Trigger_E文件夹内允许最大文件数量
 

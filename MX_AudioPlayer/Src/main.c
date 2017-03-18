@@ -81,6 +81,9 @@ RGBL RGB_PROFILE[16][2];
 
 uint32_t i;
 
+/* Lis3dh */
+Lis3dConfig lis3d;
+
 /**
  * @brief: check SETTING file's parameter
  * @Retvl: 0-OK / 1-Error
@@ -212,6 +215,14 @@ int main(void)
 		}
 		
 	}
+	
+  lis3d.MD = SYS_CFG.MD;
+  lis3d.MT = SYS_CFG.MT;
+  lis3d.CD = SYS_CFG.CD;
+  lis3d.CT = SYS_CFG.CT;
+  lis3d.CL = SYS_CFG.CL;
+  lis3d.CW = SYS_CFG.CW;
+	Lis3d_Set((Lis3dConfig*)&lis3d);
 	// Parameter check
 	if (parameter_check(SYS_CFG) || res != FR_OK)
 	{

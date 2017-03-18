@@ -1,5 +1,5 @@
-MX_AudioPlayer/Drivers/*
-MX_AudioPlayer/Middlewares/*
+# MX_AudioPlayer/Drivers/*
+# MX_AudioPlayer/Middlewares/*
 MX_AudioPlayer/MDK-ARM/DebugConfig/*
 MX_AudioPlayer/MDK-ARM/MX_AudioPlayer/*
 MX_AudioPlayer/MDK-ARM/*.lst
