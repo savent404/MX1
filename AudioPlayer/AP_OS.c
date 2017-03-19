@@ -496,7 +496,7 @@ INTERRUPT:
                   printf_FATFS("Open DIR:[%s] error:%d\n", sdir, fres);
                   break;
                 }
-                file_cnt = nTrigger_D;
+                file_cnt = nTrigger_B;
                 CRITICAL_FUNC(while (file_cnt--) {
                   fres = f_readdir(&fdir, &finfo);
                   if (fres != FR_OK || finfo.fname[0] == '\0') {
@@ -504,7 +504,7 @@ INTERRUPT:
                     break;
                   }
                 } fres = f_closedir(&fdir));
-                file_cnt = nTrigger_D - file_cnt;
+                file_cnt = nTrigger_B - file_cnt;
                 srand(SysTick->VAL);
                 file_cnt = rand() % file_cnt;
                 file_cnt += 1;
@@ -545,7 +545,7 @@ INTERRUPT:
                   printf_FATFS("Open DIR:[%s] error:%d\n", sdir, fres);
                   break;
                 }
-                file_cnt = nTrigger_D;
+                file_cnt = nTrigger_C;
                 CRITICAL_FUNC(while (file_cnt--) {
                   fres = f_readdir(&fdir, &finfo);
                   if (fres != FR_OK || finfo.fname[0] == '\0') {
@@ -553,7 +553,7 @@ INTERRUPT:
                     break;
                   }
                 } fres = f_closedir(&fdir));
-                file_cnt = nTrigger_D - file_cnt;
+                file_cnt = nTrigger_C - file_cnt;
                 srand(SysTick->VAL);
                 file_cnt = rand() % file_cnt;
                 file_cnt += 1;
