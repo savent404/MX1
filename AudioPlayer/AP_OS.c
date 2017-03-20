@@ -177,10 +177,7 @@ __inline __weak uint16_t convert_double(int16_t src_1, int16_t src_2) {
       fpt_1++;                                                              \
     }                                                                       \
     data1.size -= cnt_1;                                                    \
-    osstatus = osMessagePut(pWAVHandle, (uint32_t)audio_buf1[pos1], 0);     \
-    while (osstatus) {                                                      \
-      osstatus = osMessagePut(pWAVHandle, (uint32_t)audio_buf1[pos1], 0);   \
-    }                                                                       \
+    osstatus = osMessagePut(pWAVHandle, (uint32_t)audio_buf1[pos1], osWaitForever);\
     pos1 += 1;                                                              \
     pos1 %= osFIFO_NUM;                                                     \
   }
@@ -230,10 +227,7 @@ __inline __weak uint16_t convert_double(int16_t src_1, int16_t src_2) {
     }                                                                        \
     data1.size -= cnt_1;                                                     \
     data2.size -= cnt_2;                                                     \
-    osstatus = osMessagePut(pWAVHandle, (uint32_t)audio_buf1[pos1], 0);      \
-    while (osstatus) {                                                       \
-      osstatus = osMessagePut(pWAVHandle, (uint32_t)audio_buf1[pos1], 0);    \
-    }                                                                        \
+    osstatus = osMessagePut(pWAVHandle, (uint32_t)audio_buf1[pos1], osWaitForever);\
     evt = osMessageGet(SIG_PLAYWAVHandle, 1);                                \
     if (evt.status == osEventMessage && AskInterrupt(evt.value.v)) {         \
       f_close(&file_1);                                                      \
@@ -243,6 +237,7 @@ __inline __weak uint16_t convert_double(int16_t src_1, int16_t src_2) {
     pos1 %= osFIFO_NUM;                                                      \
     pos2 += 1;                                                               \
     pos2 %= osFIFO_NUM;                                                      \
+		CLEAR_INTERRUPT_ID();                                                    \
   }
 /*  Waiting for CMD form another Handle
     * Play single Wav file
