@@ -197,17 +197,22 @@ int main(void)
 				sscanf(spt, "T=%d", &SLT[Bank_num]);
 				while (1) {
 					
-					int para;
+					uint32_t para;
 					f_gets(para_buf, sizeof(para_buf), &file);
 					if (spt==0 || *spt==0){
 						SLS[Bank_num] = cnt + 1;
 						break;
 					}
-					sscanf(spt, "%d", &para);
-					SL[Bank_num][cnt].LED1 = (para%10000)/1000;
-					SL[Bank_num][cnt].LED2 = (para%1000)/100;
-					SL[Bank_num][cnt].LED3 = (para%100)/10;
-					SL[Bank_num][cnt].LED4 = (para%10);
+					sscanf(spt, "%ud", &para);
+          SL[Bank_num][cnt].LED8 = para%10; para /= 10;
+          SL[Bank_num][cnt].LED7 = para%10; para /= 10;
+          SL[Bank_num][cnt].LED6 = para%10; para /= 10;
+          SL[Bank_num][cnt].LED5 = para%10; para /= 10;
+          SL[Bank_num][cnt].LED4 = para%10; para /= 10;
+          SL[Bank_num][cnt].LED3 = para%10; para /= 10;
+          SL[Bank_num][cnt].LED2 = para%10; para /= 10;
+          SL[Bank_num][cnt].LED1 = para%10; para /= 10;
+
 					cnt++;
 				}
 			}

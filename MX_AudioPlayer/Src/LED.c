@@ -303,6 +303,15 @@ void Simple_LED_Opt(void) {
                     (GPIO_PinState)SL[sBANK][cnt].LED3);
   HAL_GPIO_WritePin(LED8_GPIO_Port, LED8_Pin,
                     (GPIO_PinState)SL[sBANK][cnt].LED4);
+  /* New LED Port */
+  HAL_GPIO_WritePin(LED9_GPIO_Port, LED9_Pin,
+                    (GPIO_PinState)SL[sBANK][cnt].LED5);
+  HAL_GPIO_WritePin(LED10_GPIO_Port, LED10_Pin,
+                    (GPIO_PinState)SL[sBANK][cnt].LED6);
+  HAL_GPIO_WritePin(LED11_GPIO_Port, LED11_Pin,
+                    (GPIO_PinState)SL[sBANK][cnt].LED7);
+  HAL_GPIO_WritePin(LED12_GPIO_Port, LED12_Pin,
+                    (GPIO_PinState)SL[sBANK][cnt].LED8);
   cnt += 1;
   cnt %= SLS[sBANK];
 }
