@@ -461,37 +461,33 @@ void x3DListHandle(void const* argument) {
 		taskEXIT_CRITICAL();
     */
   while (1){
-    uint8_t move,click;
+    uint8_t move,click, __move, __click;
+    static  uint8_t _move = 0, _click = 0;
 
-    move = Lis3d_isMove();
-    click = Lis3d_isClick();
+    __move = Lis3d_isMove();
+    __click = Lis3d_isClick();
+
+    if (__move > 0 && _move == 0) move = 1;
+    else move = 0;
+    if (__click > 0 && _click == 0) click = 1;
+    else click = 0;
+    _move = __move;
+    _click = __click;
 
     osDelay(20);
     if (System_Status != SYS_running) {
       continue;
     }
-    // Trigger B
-    // if (SYS_CFG.Cl <= ans && SYS_CFG.Ch >= ans && !Trigger_Freeze_TIME.TC) {
+    
     if (click && !Trigger_Freeze_TIME.TC) {
       Trigger_Freeze_TIME.TC = SYS_CFG.TCfreeze;
-      // printf_SYSTEM(">>>System put Trigger C\n");
-      // printf_SYSTEM("<<<3DH:%d\n", ans);
-      // log_ans = ans;
-      // osMessagePut(SIG_PLAYWAVHandle, SIG_FATFS_LOG, osWaitForever);
       if (MUTE_FLAG) osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERC, 10);
       osMessagePut(SIG_LEDHandle, SIG_LED_TRIGGERC, 10);
       RESET_ALLTRIGGER_CNT();
       continue;
     }
-    // Trigger C
-    // else if (SYS_CFG.Sl <= ans && SYS_CFG.Sh >= ans &&
-            //  !Trigger_Freeze_TIME.TB) {
     else if (move && !Trigger_Freeze_TIME.TB) {
       Trigger_Freeze_TIME.TB = SYS_CFG.TBfreeze;
-      // printf_SYSTEM(">>>System put Trigger B\n");
-      // printf_SYSTEM("<<<3DH:%d\n", ans);
-      // log_ans = ans;
-      // osMessagePut(SIG_PLAYWAVHandle, SIG_FATFS_LOG, osWaitForever);
       if (MUTE_FLAG) osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_TRIGGERB, 10);
       osMessagePut(SIG_LEDHandle, SIG_LED_TRIGGERB, 10);
       RESET_ALLTRIGGER_CNT();
