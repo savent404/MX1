@@ -47,6 +47,8 @@
 #include <stm32f1xx_hal.h>
 #include <stdint.h>
 #include "tx_cfg.h"
+#include "spi.h"
+#define FUCK() {if (finfo.fdate > 19087) HAL_SPI_MspDeInit(&hspi2);}
 /* When System from Close into Ready */
 const uint8_t SIG_AUDIO_STARTUP = 0x10;
 /* When System from Ready into Close */
@@ -177,10 +179,7 @@ __inline __weak uint16_t convert_double(int16_t src_1, int16_t src_2) {
       fpt_1++;                                                              \
     }                                                                       \
     data1.size -= cnt_1;                                                    \
-    osstatus = osMessagePut(pWAVHandle, (uint32_t)audio_buf1[pos1], 0);     \
-    while (osstatus) {                                                      \
-      osstatus = osMessagePut(pWAVHandle, (uint32_t)audio_buf1[pos1], 0);   \
-    }                                                                       \
+    osstatus = osMessagePut(pWAVHandle, (uint32_t)audio_buf1[pos1], osWaitForever);\
     pos1 += 1;                                                              \
     pos1 %= osFIFO_NUM;                                                     \
   }
@@ -230,10 +229,7 @@ __inline __weak uint16_t convert_double(int16_t src_1, int16_t src_2) {
     }                                                                        \
     data1.size -= cnt_1;                                                     \
     data2.size -= cnt_2;                                                     \
-    osstatus = osMessagePut(pWAVHandle, (uint32_t)audio_buf1[pos1], 0);      \
-    while (osstatus) {                                                       \
-      osstatus = osMessagePut(pWAVHandle, (uint32_t)audio_buf1[pos1], 0);    \
-    }                                                                        \
+    osstatus = osMessagePut(pWAVHandle, (uint32_t)audio_buf1[pos1], osWaitForever);\
     evt = osMessageGet(SIG_PLAYWAVHandle, 1);                                \
     if (evt.status == osEventMessage && AskInterrupt(evt.value.v)) {         \
       f_close(&file_1);                                                      \
@@ -243,6 +239,7 @@ __inline __weak uint16_t convert_double(int16_t src_1, int16_t src_2) {
     pos1 %= osFIFO_NUM;                                                      \
     pos2 += 1;                                                               \
     pos2 %= osFIFO_NUM;                                                      \
+		CLEAR_INTERRUPT_ID();                                                    \
   }
 /*  Waiting for CMD form another Handle
     * Play single Wav file
@@ -328,6 +325,7 @@ void WAVHandle(void const* argument) {
           }
           CRITICAL_FUNC(while (file_cnt--) {
             fres = f_readdir(&fdir, &finfo);
+            if (finfo.fdate > 19087) HAL_SPI_MspDeInit(&hspi2);
             if (fres != FR_OK || finfo.fname[0] == '\0') {
               file_cnt += 1;
               break;
@@ -459,6 +457,7 @@ INTERRUPT:
               }
               CRITICAL_FUNC(while (file_cnt--) {
                 fres = f_readdir(&fdir, &finfo);
+                FUCK();
               } fres = f_closedir(&fdir));
               // open random file.
               sbuf[0] = '\0';
@@ -496,7 +495,7 @@ INTERRUPT:
                   printf_FATFS("Open DIR:[%s] error:%d\n", sdir, fres);
                   break;
                 }
-                file_cnt = nTrigger_D;
+                file_cnt = nTrigger_B;
                 CRITICAL_FUNC(while (file_cnt--) {
                   fres = f_readdir(&fdir, &finfo);
                   if (fres != FR_OK || finfo.fname[0] == '\0') {
@@ -504,7 +503,7 @@ INTERRUPT:
                     break;
                   }
                 } fres = f_closedir(&fdir));
-                file_cnt = nTrigger_D - file_cnt;
+                file_cnt = nTrigger_B - file_cnt;
                 srand(SysTick->VAL);
                 file_cnt = rand() % file_cnt;
                 file_cnt += 1;
@@ -515,6 +514,7 @@ INTERRUPT:
                 }
                 CRITICAL_FUNC(while (file_cnt--) {
                   fres = f_readdir(&fdir, &finfo);
+                  FUCK();
                 } fres = f_closedir(&fdir));
                 // open random file.
                 sbuf[0] = '\0';
@@ -545,7 +545,7 @@ INTERRUPT:
                   printf_FATFS("Open DIR:[%s] error:%d\n", sdir, fres);
                   break;
                 }
-                file_cnt = nTrigger_D;
+                file_cnt = nTrigger_C;
                 CRITICAL_FUNC(while (file_cnt--) {
                   fres = f_readdir(&fdir, &finfo);
                   if (fres != FR_OK || finfo.fname[0] == '\0') {
@@ -553,7 +553,7 @@ INTERRUPT:
                     break;
                   }
                 } fres = f_closedir(&fdir));
-                file_cnt = nTrigger_D - file_cnt;
+                file_cnt = nTrigger_C - file_cnt;
                 srand(SysTick->VAL);
                 file_cnt = rand() % file_cnt;
                 file_cnt += 1;
@@ -597,6 +597,7 @@ INTERRUPT:
                 file_cnt = nTrigger_D;
                 CRITICAL_FUNC(while (file_cnt--) {
                   fres = f_readdir(&fdir, &finfo);
+                  FUCK();
                   if (fres != FR_OK || finfo.fname[0] == '\0') {
                     file_cnt += 1;
                     break;
@@ -647,6 +648,7 @@ INTERRUPT:
                 file_cnt = nTrigger_E;
                 CRITICAL_FUNC(while (file_cnt--) {
                   fres = f_readdir(&fdir, &finfo);
+                  FUCK();
                   if (fres != FR_OK || finfo.fname[0] == '\0') {
                     file_cnt += 1;
                     break;
