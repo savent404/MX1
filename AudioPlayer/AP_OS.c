@@ -48,7 +48,6 @@
 #include <stdint.h>
 #include "tx_cfg.h"
 #include "spi.h"
-#define FUCK() {if (finfo.fdate > 19087) HAL_SPI_MspDeInit(&hspi2);}
 /* When System from Close into Ready */
 const uint8_t SIG_AUDIO_STARTUP = 0x10;
 /* When System from Ready into Close */
@@ -116,7 +115,9 @@ static uint8_t AskInterrupt(uint8_t SIG_AUDIO_ID) {
 
 
 __inline __weak uint16_t convert_single(uint16_t src) {
-  return ((src + 0x7FFF) >> 4);
+  //return ((src + 0x7FFF) >> (4));
+  int16_t buf = *(int16_t*)&src;
+  return (buf>>(4 + 3 - SYS_CFG.Vol)) + 0x1000/2;
 }
 __inline __weak uint16_t convert_double(int16_t src_1, int16_t src_2) {
   /*  src_1 += 0x7FFF;
@@ -138,7 +139,7 @@ __inline __weak uint16_t convert_double(int16_t src_1, int16_t src_2) {
   if (f < 1) {
     f += ((float)1 - f) / (float)32;
   }
-  return (buf >> 4) + 0x1000 / 2;
+  return (buf >> (4 + 3 - SYS_CFG.Vol)) + 0x1000 / 2;
 }
 
 /***
@@ -309,7 +310,7 @@ void WAVHandle(void const* argument) {
         extern __IO uint8_t sBANK;
         char sdir[20] = "0:/Bank";
         char sbuf[50];
-        char file_cnt = nIn;
+        char file_cnt = nOut;
 
         // Init function
         {
@@ -325,13 +326,12 @@ void WAVHandle(void const* argument) {
           }
           CRITICAL_FUNC(while (file_cnt--) {
             fres = f_readdir(&fdir, &finfo);
-            if (finfo.fdate > 19087) HAL_SPI_MspDeInit(&hspi2);
             if (fres != FR_OK || finfo.fname[0] == '\0') {
               file_cnt += 1;
               break;
             }
           } fres = f_closedir(&fdir));
-          file_cnt = nIn - file_cnt;
+          file_cnt = nOut - file_cnt;
           srand(SysTick->VAL);
           file_cnt = rand() % file_cnt;
           file_cnt += 1;
@@ -368,8 +368,16 @@ void WAVHandle(void const* argument) {
             printf_FATFS("FATFS:Open file:%s Error:%d\n", sbuf, fres);
             break;
           }
-          CRITICAL_FUNC(fres = f_read(&file_2, &pcm2, sizeof(pcm2), &cnt_2);
+          //减少out音频和hun音频之间的间隔时间
+          //会产生破音（由于两个音频不连续，dac输出值突变导致）
+          //此问题由用户通过修改音频文件自行解决
+          //现有的解决方案
+          //    #1通过使两者音频文件连续
+          //    #2使out音频播放的脉冲输能被buffersize（现在为256）整除
+          /*CRITICAL_FUNC(fres = f_read(&file_2, &pcm2, sizeof(pcm2), &cnt_2);
                         fres = f_read(&file_2, &data2, sizeof(data2), &cnt_2));
+          */
+          
         }
         // Loop
         while (loop_flag) {
@@ -426,7 +434,7 @@ INTERRUPT:
               sdir[0] = 0;
               sbuf[0] = 0;
               strcat(sdir, "0:/Bank");
-              file_cnt = nOut;
+              file_cnt = nIn;
               // read a random file in Bank?/In/?
               // @get string:: 0:/Bank#/In
               sprintf(sbuf, "%d", sBANK + 1);
@@ -444,7 +452,7 @@ INTERRUPT:
                   break;
                 }
               } CRITICAL_FUNC(fres = f_closedir(&fdir)));
-              file_cnt = nOut - file_cnt;
+              file_cnt = nIn - file_cnt;
               srand(SysTick->VAL);
               file_cnt = rand() % file_cnt;
               file_cnt += 1;
@@ -457,7 +465,6 @@ INTERRUPT:
               }
               CRITICAL_FUNC(while (file_cnt--) {
                 fres = f_readdir(&fdir, &finfo);
-                FUCK();
               } fres = f_closedir(&fdir));
               // open random file.
               sbuf[0] = '\0';
@@ -514,7 +521,6 @@ INTERRUPT:
                 }
                 CRITICAL_FUNC(while (file_cnt--) {
                   fres = f_readdir(&fdir, &finfo);
-                  FUCK();
                 } fres = f_closedir(&fdir));
                 // open random file.
                 sbuf[0] = '\0';
@@ -597,7 +603,6 @@ INTERRUPT:
                 file_cnt = nTrigger_D;
                 CRITICAL_FUNC(while (file_cnt--) {
                   fres = f_readdir(&fdir, &finfo);
-                  FUCK();
                   if (fres != FR_OK || finfo.fname[0] == '\0') {
                     file_cnt += 1;
                     break;
@@ -648,7 +653,6 @@ INTERRUPT:
                 file_cnt = nTrigger_E;
                 CRITICAL_FUNC(while (file_cnt--) {
                   fres = f_readdir(&fdir, &finfo);
-                  FUCK();
                   if (fres != FR_OK || finfo.fname[0] == '\0') {
                     file_cnt += 1;
                     break;

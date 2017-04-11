@@ -4,7 +4,7 @@
 #define nBank 2         //设定TF卡根目录下Bank文件夹的最大数量
 		                //若此值大于Color profiles中的bank计数或者实际文件夹数，则只计三者中的最小值
 		                //ofiles中的bank计数或者实际文件夹数大于此设定值，则工作时将多余部分舍弃，只在此值限定范围内循环
-#define nIn 6           //设定Bank#文件夹下In文件夹内允许最大文件数量
+#define nIn 2           //设定Bank#文件夹下In文件夹内允许最大文件数量
 #define nOut 2		    //设定Bank#文件夹下Out文件夹内允许最大文件数量
 #define nTrigger_B 8   //设定Bank#文件夹下Trigger_B文件夹内允许最大文件数量
 #define nTrigger_C 8   //设定Bank#文件夹下Trigger_C文件夹内允许最大文件数量
@@ -19,7 +19,7 @@
     L_MEDIUM_PLUSE = 4,
     L_FAST_PLUSE = 5
 }_LMode;*/
-#define _LMode 2
+#define _LMode 1
 #define T_Breath (2000/2)
 #define Lbright_Ldeep 10
 /*

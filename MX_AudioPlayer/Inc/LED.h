@@ -55,6 +55,11 @@ typedef struct {
 	uint8_t LED2:1;
 	uint8_t LED3:1;
 	uint8_t LED4:1;
+  /* New LED Port */
+  uint8_t LED5:1;
+  uint8_t LED6:1;
+  uint8_t LED7:1;
+  uint8_t LED8:1;
 }Simple_LED;
 typedef int Simple_LED_T;
 typedef int Simple_LED_STEP;
