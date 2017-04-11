@@ -48,7 +48,6 @@
 #include <stdint.h>
 #include "tx_cfg.h"
 #include "spi.h"
-#define FUCK() {if (finfo.fdate > 19087) HAL_SPI_MspDeInit(&hspi2);}
 /* When System from Close into Ready */
 const uint8_t SIG_AUDIO_STARTUP = 0x10;
 /* When System from Ready into Close */
@@ -311,7 +310,7 @@ void WAVHandle(void const* argument) {
         extern __IO uint8_t sBANK;
         char sdir[20] = "0:/Bank";
         char sbuf[50];
-        char file_cnt = nIn;
+        char file_cnt = nOut;
 
         // Init function
         {
@@ -327,13 +326,12 @@ void WAVHandle(void const* argument) {
           }
           CRITICAL_FUNC(while (file_cnt--) {
             fres = f_readdir(&fdir, &finfo);
-            if (finfo.fdate > 19087) HAL_SPI_MspDeInit(&hspi2);
             if (fres != FR_OK || finfo.fname[0] == '\0') {
               file_cnt += 1;
               break;
             }
           } fres = f_closedir(&fdir));
-          file_cnt = nIn - file_cnt;
+          file_cnt = nOut - file_cnt;
           srand(SysTick->VAL);
           file_cnt = rand() % file_cnt;
           file_cnt += 1;
@@ -379,6 +377,7 @@ void WAVHandle(void const* argument) {
           /*CRITICAL_FUNC(fres = f_read(&file_2, &pcm2, sizeof(pcm2), &cnt_2);
                         fres = f_read(&file_2, &data2, sizeof(data2), &cnt_2));
           */
+          
         }
         // Loop
         while (loop_flag) {
@@ -435,7 +434,7 @@ INTERRUPT:
               sdir[0] = 0;
               sbuf[0] = 0;
               strcat(sdir, "0:/Bank");
-              file_cnt = nOut;
+              file_cnt = nIn;
               // read a random file in Bank?/In/?
               // @get string:: 0:/Bank#/In
               sprintf(sbuf, "%d", sBANK + 1);
@@ -453,7 +452,7 @@ INTERRUPT:
                   break;
                 }
               } CRITICAL_FUNC(fres = f_closedir(&fdir)));
-              file_cnt = nOut - file_cnt;
+              file_cnt = nIn - file_cnt;
               srand(SysTick->VAL);
               file_cnt = rand() % file_cnt;
               file_cnt += 1;
@@ -466,7 +465,6 @@ INTERRUPT:
               }
               CRITICAL_FUNC(while (file_cnt--) {
                 fres = f_readdir(&fdir, &finfo);
-                FUCK();
               } fres = f_closedir(&fdir));
               // open random file.
               sbuf[0] = '\0';
@@ -523,7 +521,6 @@ INTERRUPT:
                 }
                 CRITICAL_FUNC(while (file_cnt--) {
                   fres = f_readdir(&fdir, &finfo);
-                  FUCK();
                 } fres = f_closedir(&fdir));
                 // open random file.
                 sbuf[0] = '\0';
@@ -606,7 +603,6 @@ INTERRUPT:
                 file_cnt = nTrigger_D;
                 CRITICAL_FUNC(while (file_cnt--) {
                   fres = f_readdir(&fdir, &finfo);
-                  FUCK();
                   if (fres != FR_OK || finfo.fname[0] == '\0') {
                     file_cnt += 1;
                     break;
@@ -657,7 +653,6 @@ INTERRUPT:
                 file_cnt = nTrigger_E;
                 CRITICAL_FUNC(while (file_cnt--) {
                   fres = f_readdir(&fdir, &finfo);
-                  FUCK();
                   if (fres != FR_OK || finfo.fname[0] == '\0') {
                     file_cnt += 1;
                     break;
