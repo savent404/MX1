@@ -116,7 +116,9 @@ static uint8_t AskInterrupt(uint8_t SIG_AUDIO_ID) {
 
 
 __inline __weak uint16_t convert_single(uint16_t src) {
-  return ((src + 0x7FFF) >> 4);
+  //return ((src + 0x7FFF) >> (4));
+  int16_t buf = *(int16_t*)&src;
+  return (buf>>(4 + 3 - SYS_CFG.Vol)) + 0x1000/2;
 }
 __inline __weak uint16_t convert_double(int16_t src_1, int16_t src_2) {
   /*  src_1 += 0x7FFF;
@@ -138,7 +140,7 @@ __inline __weak uint16_t convert_double(int16_t src_1, int16_t src_2) {
   if (f < 1) {
     f += ((float)1 - f) / (float)32;
   }
-  return (buf >> 4) + 0x1000 / 2;
+  return (buf >> (4 + 3 - SYS_CFG.Vol)) + 0x1000 / 2;
 }
 
 /***
