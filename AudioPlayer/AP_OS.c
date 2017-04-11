@@ -368,8 +368,15 @@ void WAVHandle(void const* argument) {
             printf_FATFS("FATFS:Open file:%s Error:%d\n", sbuf, fres);
             break;
           }
-          CRITICAL_FUNC(fres = f_read(&file_2, &pcm2, sizeof(pcm2), &cnt_2);
+          //减少out音频和hun音频之间的间隔时间
+          //会产生破音（由于两个音频不连续，dac输出值突变导致）
+          //此问题由用户通过修改音频文件自行解决
+          //现有的解决方案
+          //    #1通过使两者音频文件连续
+          //    #2使out音频播放的脉冲输能被buffersize（现在为256）整除
+          /*CRITICAL_FUNC(fres = f_read(&file_2, &pcm2, sizeof(pcm2), &cnt_2);
                         fres = f_read(&file_2, &data2, sizeof(data2), &cnt_2));
+          */
         }
         // Loop
         while (loop_flag) {

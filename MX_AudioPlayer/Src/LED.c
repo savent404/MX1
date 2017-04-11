@@ -264,6 +264,7 @@ TAG:
     }
   }
 }
+  }
 
 void LED_COLOR_SET(RGBL data, uint8_t DC, uint8_t mode) {
   if (mode == 1) {

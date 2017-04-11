@@ -1,8 +1,7 @@
 /**
   ******************************************************************************
-  * File Name          : dma.h
-  * Description        : This file contains all the function prototypes for
-  *                      the dma.c file
+  * File Name          : main.h
+  * Description        : This file contains the common defines of the application
   ******************************************************************************
   *
   * Copyright (c) 2017 STMicroelectronics International N.V. 
@@ -42,42 +41,63 @@
   ******************************************************************************
   */
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __dma_H
-#define __dma_H
-
-#ifdef __cplusplus
- extern "C" {
-#endif
-
-/* Includes ------------------------------------------------------------------*/
-#include "stm32f1xx_hal.h"
-#include "main.h"
-
-/* DMA memory to memory transfer handles -------------------------------------*/
-extern void Error_Handler(void);
+#ifndef __MAIN_H
+#define __MAIN_H
+  /* Includes ------------------------------------------------------------------*/
 
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
 
+/* Private define ------------------------------------------------------------*/
+
+#define LED11_Pin GPIO_PIN_14
+#define LED11_GPIO_Port GPIOC
+#define LED12_Pin GPIO_PIN_15
+#define LED12_GPIO_Port GPIOC
+#define LED9_Pin GPIO_PIN_0
+#define LED9_GPIO_Port GPIOD
+#define LED10_Pin GPIO_PIN_1
+#define LED10_GPIO_Port GPIOD
+#define LED5_Pin GPIO_PIN_0
+#define LED5_GPIO_Port GPIOC
+#define LED6_Pin GPIO_PIN_1
+#define LED6_GPIO_Port GPIOC
+#define LED7_Pin GPIO_PIN_2
+#define LED7_GPIO_Port GPIOC
+#define LED8_Pin GPIO_PIN_3
+#define LED8_GPIO_Port GPIOC
+#define Power_ADC_Pin GPIO_PIN_0
+#define Power_ADC_GPIO_Port GPIOA
+#define Charge_Check_Pin GPIO_PIN_2
+#define Charge_Check_GPIO_Port GPIOA
+#define DAC_OUT_Pin GPIO_PIN_4
+#define DAC_OUT_GPIO_Port GPIOA
+#define Audio_EN_Pin GPIO_PIN_5
+#define Audio_EN_GPIO_Port GPIOA
+#define Power_EN_Pin GPIO_PIN_2
+#define Power_EN_GPIO_Port GPIOB
+#define Power_KEY_Pin GPIO_PIN_10
+#define Power_KEY_GPIO_Port GPIOB
+#define KEY_Pin GPIO_PIN_11
+#define KEY_GPIO_Port GPIOB
+#define CS_Pin GPIO_PIN_12
+#define CS_GPIO_Port GPIOB
+#define LIS3DH_INTI_Pin GPIO_PIN_6
+#define LIS3DH_INTI_GPIO_Port GPIOC
+#define Audio_Soft_EN_Pin GPIO_PIN_15
+#define Audio_Soft_EN_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
 
-void MX_DMA_Init(void);
-
-/* USER CODE BEGIN Prototypes */
-
-/* USER CODE END Prototypes */
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* __dma_H */
+/**
+  * @}
+  */ 
 
 /**
   * @}
-  */
+*/ 
 
+#endif /* __MAIN_H */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
