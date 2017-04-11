@@ -258,6 +258,15 @@ void Handle_System(void const* argument) {
 
         if (evt.status == osEventMessage && evt.value.signals & SIG_POWERKEY_UP)
           break;
+        else if (evt.status == osEventMessage && evt.value.signals & SIG_USERKEY_DOWN)
+        {
+            printf_SYSTEM(">>>System put LED switch BANK\n");
+            osMessagePut(SIG_LEDHandle, SIG_LED_SWITCHBANK,
+                         PUT_MESSAGE_LED_TIMEOUT);
+            osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_COLORSWITCH,
+                         PUT_MESSAGE_WAV_TIMEOUT);
+            RESET_ALLTRIGGER_CNT();
+        }
         else if (cnt++ > SYS_CFG.Tin)
           break;
       }
@@ -346,12 +355,12 @@ void Handle_System(void const* argument) {
         osMessagePut(SIG_LEDHandle, SIG_LED_TRIGGERD, PUT_MESSAGE_LED_TIMEOUT);
         RESET_ALLTRIGGER_CNT();
       } else {
-        printf_SYSTEM(">>>System put LED switch BANK\n");
-        osMessagePut(SIG_LEDHandle, SIG_LED_SWITCHBANK,
-                     PUT_MESSAGE_LED_TIMEOUT);
-        osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_COLORSWITCH,
-                     PUT_MESSAGE_WAV_TIMEOUT);
-        RESET_ALLTRIGGER_CNT();
+//        printf_SYSTEM(">>>System put LED switch BANK\n");
+//        osMessagePut(SIG_LEDHandle, SIG_LED_SWITCHBANK,
+//                     PUT_MESSAGE_LED_TIMEOUT);
+//        osMessagePut(SIG_PLAYWAVHandle, SIG_AUDIO_COLORSWITCH,
+//                     PUT_MESSAGE_WAV_TIMEOUT);
+//        RESET_ALLTRIGGER_CNT();
       }
     }
     // end of System = running , event == User Key
