@@ -220,6 +220,7 @@ TAG:
           }
         }
       } break;
+      */
       // Power up LED then
       case SIG_LED_CHARGEA: {
         printf_LED("&LED\tGet Charge A\n");
@@ -238,7 +239,7 @@ TAG:
           }
         }
       }
-      */
+      
 
       case SIG_LED_CHARGEB: {
         printf("&LED\tGet Charge B\n");
