@@ -42,7 +42,7 @@ void TX_CFG(struct config *cfg, RGBL rgbl[][2]) {
 
     //   match name string
     for (res = 0; res < sizeof(name_string) / 10; res++) {
-      if (!strcmp(name, name_string[res])) break;
+      if (!strcasecmp(name, name_string[res])) break;
     }
     switch (res) {
       case 0: sscanf(Lbuf,"%*[^=]=%d", &(cfg->Vol));break;

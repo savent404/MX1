@@ -416,59 +416,6 @@ void Handle_GPIO(void const* argument) {
 float log_ans;
 
 void x3DListHandle(void const* argument) {
-  /*Lis3dData data;
-
-	float x = 0,y = 0, z = 0;
-	uint8_t i = 0;
-	static float ans;
-	static const int BL = 35;
-	static const float B[35] = {
-			-0.1034825444, -0.01390230656, -0.01468616165, -0.01545907464, -0.01635932364,
-		 -0.01707814261, -0.01778350584,    -0.01848986, -0.01912000403, -0.01971540041,
-		 -0.02018627338, -0.02066230215, -0.02102502622, -0.02138603106, -0.02160620317,
-		 -0.02182896435, -0.02191580646,   0.9780050516, -0.02191580646, -0.02182896435,
-		 -0.02160620317, -0.02138603106, -0.02102502622, -0.02066230215, -0.02018627338,
-		 -0.01971540041, -0.01912000403,    -0.01848986, -0.01778350584, -0.01707814261,
-		 -0.01635932364, -0.01545907464, -0.01468616165, -0.01390230656,  -0.1034825444
-	};
-	static uint8_t pos = 0;
-	static float shift_x[35] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-	static float shift_y[35] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-	static float shift_z[35] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-		
-	memset(shift_x, 0, BL *sizeof(float));
-	memset(shift_y, 0, BL *sizeof(float));
-	memset(shift_z, 0, BL *sizeof(float));
-	ans = 0;
-	pos = 0;
-	x=0,y=0,z=0;
-	i = 0;
-
-  for (;;) {
-    taskENTER_CRITICAL();
-    Lis3dGetData(&data);
-
-			
-      shift_x[pos] = data.Dx * 1.0 * 1024 / 0x10000;
-      shift_y[pos] = data.Dy * 1.0 * 1024 / 0x10000;
-      shift_z[pos] = data.Dz * 1.0 * 1024 / 0x10000;
-			x = 0;
-			y = 0;
-			z = 0;
-      for (i = 0; i < BL; i++) {
-        x += B[i]*shift_x[(BL + pos - i)%BL];
-        y += B[i]*shift_y[(BL + pos - i)%BL];
-        z += B[i]*shift_z[(BL + pos - i)%BL];
-      }
-      ans = 0;
-      ans = x*x;
-      ans += z*z;
-      ans = sqrt(ans);
-			pos += 1;
-			pos %= BL;
-		ans = ans > 0 ? ans : -ans;
-		taskEXIT_CRITICAL();
-    */
   while (1){
     uint8_t move,click, __move, __click;
     static  uint8_t _move = 0, _click = 0;
